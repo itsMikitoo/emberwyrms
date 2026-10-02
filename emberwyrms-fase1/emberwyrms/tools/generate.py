@@ -1,0 +1,464 @@
+#!/usr/bin/env python3
+"""Generador de modelos (Java) + texturas (PNG) de Emberwyrms.
+Una sola fuente de verdad: las piezas se definen aqui, el UV se empaqueta
+automaticamente y la textura se pinta con exactamente ese UV.
+Uso:  python3 tools/generate.py      (desde la raiz del proyecto)"""
+import os, zlib, math, random
+from PIL import Image
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+JAVA = os.path.join(ROOT, 'src/main/java/io/emberwyrms/client')
+TEX = os.path.join(ROOT, 'src/main/resources/assets/emberwyrms/textures')
+os.makedirs(JAVA, exist_ok=True); os.makedirs(TEX + '/entity', exist_ok=True); os.makedirs(TEX + '/item', exist_ok=True)
+
+# ------------------------------------------------------------------ modelo
+class Part:
+    def __init__(s, name, parent, pivot=(0, 0, 0), rot=(0, 0, 0), cubes=()):
+        s.name, s.parent, s.pivot, s.rot, s.cubes = name, parent, pivot, rot, list(cubes)
+
+def C(ox, oy, oz, w, h, d, mat, f=None, dil=None):
+    return dict(o=(ox, oy, oz), s=(w, h, d), mat=mat, f=tuple(sorted((f or {}).items())), dil=dil)
+
+def jname(n):
+    p = n.split('_'); return p[0] + ''.join(x.capitalize() for x in p[1:])
+
+def fm(v):
+    t = ('%.4f' % v).rstrip('0').rstrip('.')
+    if t in ('-0', ''): t = '0'
+    return t + 'f'
+
+def ckey(c): return (c['s'], c['mat'], c['f'], c['dil'])
+
+def pack(parts):
+    keys = []
+    for p in parts:
+        for c in p.cubes:
+            if ckey(c) not in keys: keys.append(ckey(c))
+    def fp(k): w, h, d = k[0]; return 2 * (d + w), d + h
+    order = sorted(keys, key=lambda k: (-fp(k)[1], -fp(k)[0]))
+    for size in (64, 128, 256):
+        x = y = rowh = 0; pos = {}; ok = True
+        for k in order:
+            W, H = fp(k)
+            if x + W > size: x, y, rowh = 0, y + rowh, 0
+            if y + H > size or W > size: ok = False; break
+            pos[k] = (x, y); x += W; rowh = max(rowh, H)
+        if ok: return size, pos
+    raise SystemExit('no cabe la textura')
+
+# ------------------------------------------------------------------ pintura
+def shade(c, k): return tuple(max(0, min(255, int(v * k))) for v in c)
+def mix(a, b, t): return tuple(int(a[i] * (1 - t) + b[i] * t) for i in range(3))
+
+def pixel(mat, i, j, w, h, face, pal, rng, seed):
+    base = pal.get(mat, (0, 0, 0)); n = rng.uniform(-0.05, 0.05)
+    if mat == 'scale':
+        off = (j // 2) % 2; ii = i + off
+        cell = ((ii // 3) * 7 + (j // 2) * 13 + seed) % 97
+        c = shade(base, 0.9 + (cell % 7) * 0.025 + n)
+        if ii % 3 == 2 or j % 2 == 1:
+            c = shade(c, 0.72)
+            if cell % 23 == 0 and 'ember' in pal: c = mix(c, pal['ember'], 0.75)
+        elif ii % 3 == 0: c = shade(c, 1.12)
+        return c
+    if mat == 'plate':
+        c = shade(base, 0.97 + n); return shade(c, 0.7) if j % 3 == 2 else c
+    if mat == 'horn':
+        t = j / max(1, h - 1); c = mix(base, shade(base, 0.5), t * 0.85)
+        return shade(c, 0.88) if i % 3 == 0 else c
+    if mat == 'membrane':
+        c = shade(base, 0.93 + n * 2)
+        if i % 6 == 0 or j % 7 == 0: c = shade(c, 0.6)
+        if 'ember' in pal and j % 5 == 0: c = mix(c, pal['ember'], 0.18)
+        return c
+    if mat in ('bone', 'claw', 'teeth', 'beak', 'leg', 'gold', 'skin'):
+        c = shade(base, 1 + n)
+        return shade(c, 0.85) if (mat == 'gold' and (i + j) % 4 == 0) else c
+    if mat == 'spike':
+        return shade(base, 1.15 - 0.5 * j / max(1, h - 1) + n)
+    if mat == 'eye': return base
+    if mat == 'feather':
+        t = (i + j) / max(1, w + h); c = mix(pal['f_a'], pal['f_b'], t)
+        return shade(c, 0.9 + n) if i % 2 == 0 else shade(c, 1.04 + n)
+    if mat == 'feather_tail':
+        t = (i + j) / max(1, w + h)
+        c = mix(pal['f_a'], pal['f_b'], t * 2) if t < .5 else mix(pal['f_b'], pal['f_c'], (t - .5) * 2)
+        return shade(c, 0.9 + n) if i % 2 == 0 else shade(c, 1.05 + n)
+    if mat == 'flame':
+        t = (i * 0.5 + j) / max(1, w * 0.5 + h); return shade(mix(pal['f_c'], pal['f_a'], t), 1 + n * 2)
+    if mat == 'snake':
+        c = shade(base, 1 + n)
+        if (i + j) % 4 == 0 or (i - j) % 4 == 0: c = shade(c, 0.65)
+        return c
+    if mat == 'snake_head':
+        c = shade(pal['snake'], 1.1 + n)
+        if face == 'front' and j == 1 and i in (1, w - 2): return pal['eye']
+        return c
+    if mat == 'cloth':
+        c = shade(base, 1 + n); return shade(c, 0.8) if (i % 2 == 0) ^ (j % 2 == 0) else c
+    if mat == 'face':
+        if face != 'front': return shade(pal['skin'], 1 + n)
+        c = shade(pal['skin'], 1 + n * 2)
+        if j == 2 and (1 <= i <= 2 or 5 <= i <= 6): return shade(pal['hair_dark'], 1)
+        if j in (3, 4) and i in (1, 2, 5, 6): return pal['eye']
+        if j == 5 and i in (3, 4): return shade(c, 0.8)
+        if j == 6 and 2 <= i <= 5: return pal['hair_dark']
+        if j == 6 and i in (2, 5): return pal['teeth']
+        return c
+    return (255, 0, 255)
+
+def paint(parts, size, pos, pal, name):
+    img = Image.new('RGBA', (size, size), (0, 0, 0, 0)); px = img.load()
+    for k, (x0, y0) in pos.items():
+        (w, h, d), mat, f, _ = k; fo = dict(f)
+        seed = zlib.crc32(repr(k).encode()) % 97; rng = random.Random(seed)
+        faces = {'top': (x0 + d, y0, w, d), 'bottom': (x0 + d + w, y0, w, d),
+                 'right': (x0, y0 + d, d, h), 'front': (x0 + d, y0 + d, w, h),
+                 'left': (x0 + d + w, y0 + d, d, h), 'back': (x0 + 2 * d + w, y0 + d, w, h)}
+        for face, (fx, fy, fw, fh) in faces.items():
+            m = fo.get(face, mat)
+            for j in range(fh):
+                for i in range(fw):
+                    px[fx + i, fy + j] = pixel(m, i, j, fw, fh, face, pal, rng, seed) + (255,)
+    img.save(os.path.join(TEX, 'entity', name + '.png'))
+
+# ------------------------------------------------------------------ java
+def emit(cls, state, layer_hint, parts, size, pos, anim):
+    L = []
+    L.append('package io.emberwyrms.client;\n')
+    for imp in ('Dilation', 'ModelData', 'ModelPart', 'ModelPartBuilder', 'ModelPartData', 'ModelTransform', 'TexturedModelData'):
+        L.append('import net.minecraft.client.model.%s;' % imp)
+    L.append('import net.minecraft.client.render.entity.model.EntityModel;\n')
+    L.append('/** GENERADO por tools/generate.py. Edita el generador, no este archivo. */')
+    L.append('public class %s extends EntityModel<%s> {' % (cls, state))
+    names = [jname(p.name) for p in parts]
+    assert len(set(names)) == len(names), 'nombres repetidos'
+    for n in names: L.append('    private final ModelPart %s;' % n)
+    L.append('\n    public %s(ModelPart root) {\n        super(root);' % cls)
+    for p in parts:
+        par = 'root' if p.parent is None else jname(p.parent)
+        L.append('        this.%s = %s.getChild("%s");' % (jname(p.name), par, p.name))
+    L.append('    }\n')
+    L.append('    public static TexturedModelData getTexturedModelData() {')
+    L.append('        ModelData data = new ModelData();\n        ModelPartData root = data.getRoot();')
+    for p in parts:
+        par = 'root' if p.parent is None else jname(p.parent)
+        b = 'ModelPartBuilder.create()'
+        for c in p.cubes:
+            u, v = pos[ckey(c)]; o, s = c['o'], c['s']
+            args = ', '.join(fm(x) for x in (*o, *s))
+            if c['dil']: args += ', new Dilation(%s)' % ', '.join(fm(x) for x in c['dil'])
+            b += '\n                .uv(%d, %d).cuboid(%s)' % (u, v, args)
+        t = 'ModelTransform.of(%s)' % ', '.join(fm(x) for x in (*p.pivot, *p.rot))
+        L.append('        ModelPartData %s = %s.addChild("%s", %s,\n                %s);' % (jname(p.name), par, p.name, b, t))
+    L.append('        return TexturedModelData.of(data, %d, %d);\n    }\n' % (size, size))
+    L.append('    private static float sin(float v) { return (float) Math.sin(v); }')
+    L.append('    private static float cos(float v) { return (float) Math.cos(v); }\n')
+    L.append(anim)
+    L.append('}')
+    open(os.path.join(JAVA, cls + '.java'), 'w').write('\n'.join(L) + '\n')
+
+def build(cls, state, parts, pal, tex, anim):
+    ids = {p.name for p in parts}
+    for p in parts: assert p.parent is None or p.parent in ids, p.name
+    size, pos = pack(parts)
+    paint(parts, size, pos, pal, tex)
+    emit(cls, state, None, parts, size, pos, anim)
+    print('%s: %d piezas, textura %dx%d' % (cls, len(parts), size, size))
+
+# =================================================================== ASHWING
+def ashwing():
+    P = []
+    def part(*a, **k): P.append(Part(*a, **k))
+    part('body', None, (0, 10, 0), cubes=[
+        C(-6, -5, -11, 12, 11, 22, 'scale', {'bottom': 'plate'}),
+        C(-5.5, -4, -14, 11, 10, 3, 'scale'),
+        C(-5, -7, -9, 10, 2, 8, 'scale')] +
+        [C(-0.5, -8, z, 1, 3, 2, 'spike') for z in (-9, -5, -1, 3, 7)])
+    part('neck1', 'body', (0, -2, -13), (-0.55, 0, 0), [
+        C(-3, -3, -7, 6, 6, 8, 'scale', {'bottom': 'plate'}), C(-0.5, -5, -6, 1, 2, 2, 'spike'), C(-0.5, -5, -2, 1, 2, 2, 'spike')])
+    part('neck2', 'neck1', (0, 0, -7), (0.25, 0, 0), [
+        C(-2.5, -2.5, -7, 5, 5, 8, 'scale', {'bottom': 'plate'}), C(-0.5, -4.5, -5, 1, 2, 2, 'spike')])
+    part('head', 'neck2', (0, 0, -7), (0.4, 0, 0), [
+        C(-3.5, -3, -8, 7, 6, 8, 'scale'), C(-4, -4, -6, 8, 1, 4, 'scale'),
+        C(-2.5, -1.5, -14, 5, 3, 6, 'scale'),
+        C(-2, -1.7, -14.3, 1, 1, 1, 'claw'), C(1, -1.7, -14.3, 1, 1, 1, 'claw'),
+        C(-2, 1.5, -13, 1, 1, 2, 'teeth'), C(1, 1.5, -13, 1, 1, 2, 'teeth'),
+        C(-2, 1.5, -9, 1, 1, 1, 'teeth'), C(1, 1.5, -9, 1, 1, 1, 'teeth'),
+        C(3.3, -2, -6, 1, 1, 2, 'eye'), C(-4.3, -2, -6, 1, 1, 2, 'eye'),
+        C(3.5, -1, -3, 1, 2, 3, 'spike'), C(-4.5, -1, -3, 1, 2, 3, 'spike'),
+        C(-0.5, -5, -6, 1, 2, 4, 'spike'), C(-0.5, -5, -1, 1, 2, 3, 'spike')])
+    part('jaw', 'head', (0, 1.5, -1), cubes=[C(-2.5, 0, -12, 5, 1, 11, 'scale', {'top': 'plate'}),
+        C(-2, -1, -12, 1, 1, 2, 'teeth'), C(1, -1, -12, 1, 1, 2, 'teeth')])
+    for lr, s in (('l', 1), ('r', -1)):
+        part('horn_' + lr, 'head', (3 * s, -3, -1), (0.7, 0.3 * s, 0), [C(-1, -1, 0, 2, 2, 6, 'horn')])
+        part('horn_%s_tip' % lr, 'horn_' + lr, (0, 0, 6), (0.35, 0.15 * s, 0), [C(-0.5, -0.5, 0, 1, 1, 5, 'horn')])
+    tl = [(9, 3, 'scale'), (9, 2.5, 'scale'), (9, 2, 'scale'), (8, 1.5, 'scale')]
+    part('tail1', 'body', (0, -1, 10), cubes=[C(-3, -3, 0, 6, 6, 9, 'scale', {'bottom': 'plate'}), C(-0.5, -5, 2, 1, 2, 3, 'spike')])
+    part('tail2', 'tail1', (0, 0, 9), cubes=[C(-2.5, -2.5, 0, 5, 5, 9, 'scale', {'bottom': 'plate'}), C(-0.5, -4.5, 2, 1, 2, 3, 'spike')])
+    part('tail3', 'tail2', (0, 0, 9), cubes=[C(-2, -2, 0, 4, 4, 9, 'scale'), C(-0.5, -3.5, 2, 1, 2, 3, 'spike')])
+    part('tail4', 'tail3', (0, 0, 9), cubes=[C(-1.5, -1.5, 0, 3, 3, 8, 'scale')])
+    part('tail_tip', 'tail4', (0, 0, 8), cubes=[C(-0.5, -3.5, 0, 1, 7, 6, 'horn'), C(-3.5, -0.5, 1, 7, 1, 4, 'horn')])
+    for lr, s in (('l', 1), ('r', -1)):
+        ox = lambda L: 0 if s > 0 else -L
+        part('wing_' + lr, 'body', (5 * s, -4, -5), cubes=[C(ox(4), -2, -2, 4, 4, 4, 'scale')])
+        part('arm_' + lr, 'wing_' + lr, (4 * s, 0, 0), cubes=[C(ox(10), -1.5, -1.5, 10, 3, 3, 'scale'),
+             C(ox(10), -0.5, 1.5, 10, 1, 12, 'membrane', dil=(0, -0.25, 0)), C(ox(1) - 0 if s > 0 else -2, -1, -4, 1, 1, 3, 'claw')])
+        part('fore_' + lr, 'arm_' + lr, (10 * s, 0, 0), cubes=[C(ox(10), -1, -1, 10, 2, 2, 'scale')])
+        for k, (ang, ln) in enumerate(((0.45, 15), (0.95, 13), (1.45, 10))):
+            part('f%d_%s' % (k + 1, lr), 'fore_' + lr, (10 * s, 0, 0), (0, -ang * s, 0), [
+                C(ox(ln), -0.5, -0.5, ln, 1, 1, 'bone'), C(ox(ln), -0.5, 0.5, ln, 1, 6, 'membrane', dil=(0, -0.25, 0))])
+    for n, sx, z, hind in (('fl', 1, -8, 0), ('fr', -1, -8, 0), ('bl', 1, 7, 1), ('br', -1, 7, 1)):
+        part('leg_' + n, 'body', ((6 if hind else 5.5) * sx, 4, z), cubes=[
+            C(-3, -2, -3.5, 6, 8, 7, 'scale') if hind else C(-2.5, -1, -3, 5, 6, 6, 'scale')])
+        part('shin_' + n, 'leg_' + n, (0, 6 if hind else 5, 0), cubes=[C(-2, 0, -2, 4, 3 if hind else 4, 4, 'scale')])
+        part('foot_' + n, 'shin_' + n, (0, 3 if hind else 4, 0), cubes=[C(-2.5, 0, -4, 5, 1, 6, 'scale'),
+             C(-2, 0, -6, 1, 1, 2, 'claw'), C(-0.5, 0, -6, 1, 1, 2, 'claw'), C(1, 0, -6, 1, 1, 2, 'claw')])
+    return P
+
+ASH_ANIM = '''    @Override
+    public void setAngles(AshwingRenderState s) {
+        super.setAngles(s);
+        float t = s.age;
+        float amp = Math.min(1f, s.limbAmplitudeMultiplier * 1.6f);
+        float f = s.limbFrequency * 0.6662f;
+        float breathe = sin(t * 0.09f);
+        float yawLook = s.relativeHeadYaw * 0.0174533f;
+        float pitchLook = s.pitch * 0.0174533f;
+        boolean sit = s.sitting;
+
+        this.body.pivotY = (sit ? 14f : 10f) + breathe * 0.25f;
+        this.body.pitch = sit ? -0.35f : 0f;
+        this.neck1.pitch = -0.55f + (sit ? 0.15f : 0f);
+        this.neck2.pitch = 0.25f;
+        this.neck1.yaw = yawLook * 0.3f;
+        this.neck2.yaw = yawLook * 0.3f;
+        this.head.yaw = yawLook * 0.4f;
+        this.head.pitch = 0.4f + pitchLook * 0.6f + breathe * 0.02f;
+        this.jaw.pitch = 0.06f + (breathe + 1f) * 0.04f;
+
+        float sway = sin(t * 0.07f);
+        float walkSway = cos(f) * 0.1f * amp;
+        this.tail1.yaw = sway * 0.12f + walkSway;
+        this.tail2.yaw = sin(t * 0.07f - 0.6f) * 0.16f + walkSway;
+        this.tail3.yaw = sin(t * 0.07f - 1.2f) * 0.2f;
+        this.tail4.yaw = sin(t * 0.07f - 1.8f) * 0.24f;
+        this.tailTip.yaw = sin(t * 0.07f - 2.4f) * 0.28f;
+        this.tail1.pitch = sit ? 0.5f : 0f;
+
+        float fold = 0.88f;
+        float flutter = sin(t * 0.1f) * 0.025f;
+        this.wingL.yaw = -0.8f * fold;  this.wingR.yaw = 0.8f * fold;
+        this.wingL.roll = 0.3f * fold + flutter;  this.wingR.roll = -(0.3f * fold + flutter);
+        this.foreL.yaw = -1.2f * fold;  this.foreR.yaw = 1.2f * fold;
+        float[] base = {-0.45f, -0.95f, -1.45f};
+        ModelPart[] fl = {f1L, f2L, f3L};
+        ModelPart[] fr = {f1R, f2R, f3R};
+        for (int i = 0; i < 3; i++) {
+            fl[i].yaw = base[i] * (1f - 0.7f * fold);
+            fr[i].yaw = -base[i] * (1f - 0.7f * fold);
+        }
+
+        if (sit) {
+            this.legFl.pivotY = 0f; this.legFr.pivotY = 0f;
+            this.legBl.pivotY = -2f; this.legBr.pivotY = -2f;
+            this.legFl.pitch = 0.1f; this.legFr.pitch = 0.1f;
+            this.legBl.pitch = -1.1f; this.legBr.pitch = -1.1f;
+        } else {
+            this.legFl.pivotY = 4f; this.legFr.pivotY = 4f; this.legBl.pivotY = 4f; this.legBr.pivotY = 4f;
+            float sw = cos(f) * 1.1f * amp;
+            this.legFl.pitch = sw;  this.legBr.pitch = sw;
+            this.legFr.pitch = -sw; this.legBl.pitch = -sw;
+        }
+    }'''
+
+ASH_PAL = dict(scale=(62, 56, 60), plate=(152, 122, 96), horn=(196, 180, 154), membrane=(104, 40, 34),
+               bone=(74, 66, 64), claw=(30, 28, 30), eye=(255, 176, 40), teeth=(228, 218, 196),
+               spike=(96, 78, 76), ember=(236, 96, 26))
+
+# =================================================================== PHOENIX
+def phoenix():
+    P = []
+    def part(*a, **k): P.append(Part(*a, **k))
+    part('body', None, (0, 16, 0), cubes=[C(-3, -3, -6, 6, 6, 10, 'feather'), C(-2.5, -2, -8, 5, 5, 2, 'feather')])
+    part('neck', 'body', (0, -1, -6), (-0.5, 0, 0), [C(-1.5, -1.5, -5, 3, 3, 6, 'feather')])
+    part('head', 'neck', (0, 0, -5), (0.5, 0, 0), [C(-2, -2, -4, 4, 4, 4, 'feather'),
+         C(-1, -0.5, -7, 2, 1, 3, 'beak'), C(-1, 0.5, -6, 2, 1, 2, 'beak'),
+         C(1.7, -1.2, -3, 1, 1, 1, 'eye'), C(-2.7, -1.2, -3, 1, 1, 1, 'eye')])
+    for k, (pt, yw, ln) in enumerate(((0.9, 0, 7), (0.7, 0.35, 5), (0.7, -0.35, 5))):
+        part('crest_%d' % k, 'head', (0, -2, -1), (pt, yw, 0), [C(-0.5, -0.5, 0, 1, 1, ln, 'flame')])
+    for lr, s in (('l', 1), ('r', -1)):
+        ox = lambda L: 0 if s > 0 else -L
+        part('wing_' + lr, 'body', (3 * s, -2, -2), cubes=[C(ox(6), -0.5, -1.5, 6, 1, 3, 'feather'), C(ox(6), -0.5, 1.5, 6, 1, 6, 'feather')])
+        part('wing_out_' + lr, 'wing_' + lr, (6 * s, 0, 0), cubes=[C(ox(6), -0.5, -1.5, 6, 1, 3, 'feather'), C(ox(6), -0.5, 1.5, 6, 1, 5, 'feather')])
+        for k, ln in enumerate((12, 11, 9, 7)):
+            part('prim_%d_%s' % (k, lr), 'wing_out_' + lr, (0, 0, 0), (0, -(0.05 + 0.2 * k) * s, 0), [C(ox(ln), -0.5, -1 + k * 0.5, ln, 1, 3, 'feather')])
+        part('leg_' + lr, 'body', (1.5 * s, 3, 0), cubes=[C(-1, 0, -1, 2, 3, 2, 'leg')])
+        part('shin_' + lr, 'leg_' + lr, (0, 3, 0), cubes=[C(-0.5, 0, -0.5, 1, 2, 1, 'leg')])
+        part('foot_' + lr, 'shin_' + lr, (0, 2, 0), cubes=[C(-1.5, -1, -3, 1, 1, 3, 'leg'), C(-0.5, -1, -3, 1, 1, 3, 'leg'),
+             C(0.5, -1, -3, 1, 1, 3, 'leg'), C(-0.5, -1, 0, 1, 1, 2, 'leg')])
+    part('tail', 'body', (0, -1, 4))
+    for k, ln in enumerate((12, 15, 18, 15, 12)):
+        part('tail_%d' % k, 'tail', (0, 0, 0), (-0.12, (k - 2) * 0.28, 0), [C(-1, -0.5, 0, 2, 1, ln, 'feather_tail')])
+    return P
+
+PHX_ANIM = '''    @Override
+    public void setAngles(PhoenixRenderState s) {
+        super.setAngles(s);
+        float t = s.age;
+        float f = s.limbFrequency * 0.6662f;
+        float amp = Math.min(1f, s.limbAmplitudeMultiplier * 1.5f);
+        float yawLook = s.relativeHeadYaw * 0.0174533f;
+        float pitchLook = s.pitch * 0.0174533f;
+
+        this.body.pivotY = 16f + sin(t * 0.1f) * 0.3f;
+        this.neck.pitch = -0.5f;
+        this.head.pitch = 0.5f + pitchLook * 0.5f;
+        this.head.yaw = yawLook * 0.6f;
+        float[] crestYaw = {0f, 0.35f, -0.35f};
+        ModelPart[] crest = {crest0, crest1, crest2};
+        for (int i = 0; i < 3; i++) {
+            crest[i].pitch = 0.7f + sin(t * 0.2f + i) * 0.12f;
+            crest[i].yaw = crestYaw[i] + sin(t * 0.17f + i * 2f) * 0.08f;
+        }
+
+        ModelPart[] primL = {prim0L, prim1L, prim2L, prim3L};
+        ModelPart[] primR = {prim0R, prim1R, prim2R, prim3R};
+        float[] py = {-0.05f, -0.25f, -0.45f, -0.65f};
+        float spread;
+        if (s.flying) {
+            float flap = sin(t * 0.9f);
+            spread = 1f;
+            this.body.pitch = 0.1f;
+            this.wingL.yaw = 0f; this.wingR.yaw = 0f; this.wingOutL.yaw = 0f; this.wingOutR.yaw = 0f;
+            this.wingL.roll = -flap * 0.9f;  this.wingR.roll = flap * 0.9f;
+            this.wingOutL.roll = -flap * 0.5f - 0.1f;  this.wingOutR.roll = flap * 0.5f + 0.1f;
+            this.legL.pitch = 0.9f; this.legR.pitch = 0.9f;
+            this.shinL.pitch = 0.7f; this.shinR.pitch = 0.7f;
+        } else {
+            spread = 0.3f;
+            this.body.pitch = 0f;
+            this.wingL.yaw = -0.7f;  this.wingR.yaw = 0.7f;
+            this.wingL.roll = 0.5f;  this.wingR.roll = -0.5f;
+            this.wingOutL.yaw = -1.1f; this.wingOutR.yaw = 1.1f;
+            this.wingOutL.roll = 0f; this.wingOutR.roll = 0f;
+            float sw = cos(f) * 0.9f * amp;
+            this.legL.pitch = sw; this.legR.pitch = -sw;
+            this.shinL.pitch = 0f; this.shinR.pitch = 0f;
+        }
+        for (int i = 0; i < 4; i++) {
+            primL[i].yaw = py[i] * spread;
+            primR[i].yaw = -py[i] * spread;
+        }
+        ModelPart[] tf = {tail0, tail1, tail2, tail3, tail4};
+        for (int i = 0; i < 5; i++) {
+            tf[i].yaw = (i - 2) * 0.28f * (s.flying ? 1.15f : 0.8f) + sin(t * 0.12f + i) * 0.05f;
+            tf[i].pitch = -0.12f + (s.flying ? sin(t * 0.9f) * 0.08f : 0f);
+        }
+    }'''
+
+PHX_PAL = dict(feather=(0, 0, 0), f_a=(206, 40, 24), f_b=(255, 150, 30), f_c=(255, 232, 140),
+               beak=(240, 176, 48), eye=(255, 250, 170), leg=(196, 138, 46))
+PHX_PAL['feather'] = (220, 70, 30)
+PHX_PAL.update(flame=(255, 200, 60))
+
+# =================================================================== MEDUSA
+def medusa():
+    P = []
+    def part(*a, **k): P.append(Part(*a, **k))
+    part('coil1', None, (0, 20, 2), cubes=[C(-5, -4, -5, 10, 8, 10, 'scale')])
+    part('coil2', 'coil1', (0, 0, 5), (0, 0.25, 0), [C(-4, -3.5, 0, 8, 7, 7, 'scale')])
+    part('coil3', 'coil2', (0, 0, 7), (0, 0.25, 0), [C(-3, -3, 0, 6, 6, 7, 'scale')])
+    part('coil4', 'coil3', (0, 0, 7), (0, 0.25, 0), [C(-2.5, -2.5, 0, 5, 5, 7, 'scale')])
+    part('coil5', 'coil4', (0, 0, 7), (0, 0.25, 0), [C(-1.5, -1.5, 0, 3, 3, 7, 'scale')])
+    part('coil6', 'coil5', (0, 0, 7), (0, 0.25, 0), [C(-1, -1, 0, 2, 2, 6, 'scale')])
+    part('torso', None, (0, 16, -1), cubes=[C(-4, -12, -2.5, 8, 12, 5, 'skin'),
+         C(-4.5, -11, -3, 9, 4, 6, 'cloth'), C(-4.5, -2, -3, 9, 2, 6, 'gold')])
+    part('head', 'torso', (0, -12, 0), cubes=[C(-4, -8, -4, 8, 8, 8, 'face'), C(-4.5, -7, -4.5, 9, 1, 9, 'gold')])
+    for lr, s in (('l', 1), ('r', -1)):
+        part('arm_' + lr, 'torso', (5.5 * s, -11, 0), cubes=[C(-1.5, -1, -1.5, 3, 10, 3, 'skin'), C(-2, 5, -2, 4, 2, 4, 'gold'),
+             C(-1.5, 9, -1.5, 3, 2, 3, 'skin'), C(-1.5, 11, -1.5, 1, 2, 1, 'claw'), C(-0.5, 11, -1.5, 1, 2, 1, 'claw'), C(0.5, 11, -1.5, 1, 2, 1, 'claw')])
+    dirs = []
+    for k in range(8):
+        a = k * math.pi / 4; dx, dz = math.cos(a), math.sin(a); dirs.append((dx, dz))
+        part('snake%d' % k, 'head', (3 * dx, -7.5, 3 * dz), (-0.6 * dz, 0, 0.6 * dx), [C(-0.5, -4, -0.5, 1, 4, 1, 'snake')])
+        part('snake%d_b' % k, 'snake%d' % k, (0, -4, 0), (-0.4 * dz, 0, 0.4 * dx), [C(-0.5, -4, -0.5, 1, 4, 1, 'snake')])
+        part('snake%d_h' % k, 'snake%d_b' % k, (0, -4, 0), cubes=[C(-1, -2, -1.5, 2, 2, 3, 'snake_head')])
+    global MED_DIRS; MED_DIRS = dirs
+    return P
+
+def med_anim():
+    bx = ', '.join(fm(d[0]) for d in MED_DIRS); bz = ', '.join(fm(d[1]) for d in MED_DIRS)
+    return '''    private static final float[] SNAKE_DX = {%s};
+    private static final float[] SNAKE_DZ = {%s};
+
+    @Override
+    public void setAngles(LivingEntityRenderState s) {
+        super.setAngles(s);
+        float t = s.age;
+        float f = s.limbFrequency * 0.6662f;
+        float amp = Math.min(1f, s.limbAmplitudeMultiplier * 1.6f);
+        float yawLook = s.relativeHeadYaw * 0.0174533f;
+        float pitchLook = s.pitch * 0.0174533f;
+
+        this.head.yaw = yawLook * 0.8f;
+        this.head.pitch = pitchLook * 0.7f;
+        this.torso.yaw = sin(t * 0.06f) * 0.05f + cos(f) * 0.15f * amp;
+        this.torso.pivotY = 16f + sin(t * 0.08f) * 0.3f;
+
+        float sw = 0.1f + 0.25f * amp;
+        float sp = t * 0.07f + f * 0.5f;
+        this.coil1.yaw = sin(sp) * sw;
+        ModelPart[] coil = {coil2, coil3, coil4, coil5, coil6};
+        for (int i = 0; i < coil.length; i++) {
+            coil[i].yaw = 0.25f + sin(sp - 0.7f * (i + 1)) * (sw + 0.08f * i);
+        }
+
+        this.armL.pitch = -0.2f + cos(f) * 0.5f * amp;
+        this.armR.pitch = -0.2f - cos(f) * 0.5f * amp;
+        this.armL.roll = -0.12f + sin(t * 0.05f) * 0.03f;
+        this.armR.roll = 0.12f - sin(t * 0.05f) * 0.03f;
+
+        ModelPart[] a = {snake0, snake1, snake2, snake3, snake4, snake5, snake6, snake7};
+        ModelPart[] b = {snake0B, snake1B, snake2B, snake3B, snake4B, snake5B, snake6B, snake7B};
+        for (int i = 0; i < 8; i++) {
+            float w = sin(t * 0.15f + i * 1.3f);
+            a[i].roll = 0.6f * SNAKE_DX[i] + w * 0.22f;
+            a[i].pitch = -0.6f * SNAKE_DZ[i] + sin(t * 0.13f + i) * 0.18f;
+            b[i].roll = 0.4f * SNAKE_DX[i] + sin(t * 0.17f + i * 0.9f) * 0.3f;
+            b[i].pitch = -0.4f * SNAKE_DZ[i] + cos(t * 0.15f + i) * 0.25f;
+        }
+    }''' % (bx, bz)
+
+MED_PAL = dict(scale=(52, 122, 64), skin=(112, 164, 92), cloth=(96, 44, 118), gold=(224, 184, 64),
+               snake=(66, 140, 62), eye=(232, 255, 70), hair_dark=(30, 60, 34), teeth=(240, 240, 220), claw=(40, 34, 40),
+               ember=(0, 0, 0))
+
+# =================================================================== ICONOS
+def egg(name, c1, c2):
+    img = Image.new('RGBA', (16, 16), (0, 0, 0, 0)); px = img.load(); rng = random.Random(name)
+    for y in range(16):
+        for x in range(16):
+            e = ((x - 7.5) / 5.4) ** 2 + ((y - 8.2) / 6.8) ** 2
+            if e <= 1:
+                px[x, y] = shade(c1, 0.55) + (255,) if e > 0.78 else (c1 + (255,))
+                if e <= 0.78 and rng.random() < 0.16: px[x, y] = c2 + (255,)
+    img.save(os.path.join(TEX, 'item', name + '.png'))
+
+def emberscale():
+    img = Image.new('RGBA', (16, 16), (0, 0, 0, 0)); px = img.load()
+    for y in range(16):
+        for x in range(16):
+            d = abs(x - 7.5) / 5.5 + abs(y - 7.5) / 7
+            if d <= 1:
+                c = (200, 70, 28) if d > 0.8 else (238, 118, 34) if d > 0.45 else (255, 190, 70)
+                px[x, y] = c + (255,)
+    img.save(os.path.join(TEX, 'item', 'emberscale.png'))
+
+if __name__ == '__main__':
+    build('AshwingModel', 'AshwingRenderState', ashwing(), ASH_PAL, 'ashwing', ASH_ANIM)
+    build('PhoenixModel', 'PhoenixRenderState', phoenix(), PHX_PAL, 'phoenix', PHX_ANIM)
+    mp = medusa()
+    build('MedusaModel', 'LivingEntityRenderState', mp, MED_PAL, 'medusa', med_anim())
+    egg('ashwing_spawn_egg', (62, 56, 60), (236, 96, 26)); egg('phoenix_spawn_egg', (220, 70, 30), (255, 200, 60))
+    egg('medusa_spawn_egg', (52, 122, 64), (96, 44, 118)); emberscale()

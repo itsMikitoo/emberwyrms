@@ -1,0 +1,10 @@
+{
+  "entity.emberwyrms.ashwing": "Ashwing",
+  "entity.emberwyrms.phoenix": "Phoenix",
+  "entity.emberwyrms.medusa": "Medusa",
+  "entity.emberwyrms.medusa.gaze": "Medusa's gaze petrifies you",
+  "item.emberwyrms.emberscale": "Ember Scale",
+  "item.emberwyrms.ashwing_spawn_egg": "Ashwing Spawn Egg",
+  "item.emberwyrms.phoenix_spawn_egg": "Phoenix Spawn Egg",
+  "item.emberwyrms.medusa_spawn_egg": "Medusa Spawn Egg"
+}

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "emberwyrms",
+  "version": "${version}",
+  "name": "Emberwyrms",
+  "description": "Dragones, fenix y medusas para Minecraft. Fase 1: modelos 3D nuevos.",
+  "authors": ["Emberwyrms Contributors"],
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["io.emberwyrms.Emberwyrms"],
+    "client": ["io.emberwyrms.client.EmberwyrmsClient"]
+  },
+  "depends": {
+    "fabricloader": ">=0.18.5",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabric-api": ">=0.141.4+1.21.11"
+  }
+}
