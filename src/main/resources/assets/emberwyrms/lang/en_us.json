@@ -1,4 +1,5 @@
 {
+  "itemGroup.emberwyrms": "Emberwyrms",
   "entity.emberwyrms.ashwing": "Ashwing",
   "entity.emberwyrms.phoenix": "Phoenix",
   "entity.emberwyrms.medusa": "Medusa",
@@ -6,5 +7,21 @@
   "item.emberwyrms.emberscale": "Ember Scale",
   "item.emberwyrms.ashwing_spawn_egg": "Ashwing Spawn Egg",
   "item.emberwyrms.phoenix_spawn_egg": "Phoenix Spawn Egg",
-  "item.emberwyrms.medusa_spawn_egg": "Medusa Spawn Egg"
+  "item.emberwyrms.medusa_spawn_egg": "Medusa Spawn Egg",
+  "entity.emberwyrms.fire_dragon": "Fire Dragon",
+  "item.emberwyrms.fire_dragon_scale": "Fire Dragon Scale",
+  "block.emberwyrms.fire_dragon_egg": "Fire Dragon Egg",
+  "item.emberwyrms.fire_dragon_spawn_egg": "Fire Dragon Spawn Egg",
+  "entity.emberwyrms.ice_dragon": "Ice Dragon",
+  "item.emberwyrms.ice_dragon_scale": "Ice Dragon Scale",
+  "block.emberwyrms.ice_dragon_egg": "Ice Dragon Egg",
+  "item.emberwyrms.ice_dragon_spawn_egg": "Ice Dragon Spawn Egg",
+  "entity.emberwyrms.storm_dragon": "Lightning Dragon",
+  "item.emberwyrms.storm_dragon_scale": "Lightning Dragon Scale",
+  "block.emberwyrms.storm_dragon_egg": "Lightning Dragon Egg",
+  "item.emberwyrms.storm_dragon_spawn_egg": "Lightning Dragon Spawn Egg",
+  "entity.emberwyrms.tide_dragon": "Water Dragon",
+  "item.emberwyrms.tide_dragon_scale": "Water Dragon Scale",
+  "block.emberwyrms.tide_dragon_egg": "Water Dragon Egg",
+  "item.emberwyrms.tide_dragon_spawn_egg": "Water Dragon Spawn Egg"
 }

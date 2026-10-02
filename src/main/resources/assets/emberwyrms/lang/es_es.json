@@ -1,4 +1,5 @@
 {
+  "itemGroup.emberwyrms": "Emberwyrms",
   "entity.emberwyrms.ashwing": "Alascua",
   "entity.emberwyrms.phoenix": "Fénix",
   "entity.emberwyrms.medusa": "Medusa",
@@ -6,5 +7,21 @@
   "item.emberwyrms.emberscale": "Escama de brasa",
   "item.emberwyrms.ashwing_spawn_egg": "Huevo generador de alascua",
   "item.emberwyrms.phoenix_spawn_egg": "Huevo generador de Fénix",
-  "item.emberwyrms.medusa_spawn_egg": "Huevo generador de Medusa"
+  "item.emberwyrms.medusa_spawn_egg": "Huevo generador de Medusa",
+  "entity.emberwyrms.fire_dragon": "Dragón de fuego",
+  "item.emberwyrms.fire_dragon_scale": "Escama de dragón de fuego",
+  "block.emberwyrms.fire_dragon_egg": "Huevo de dragón de fuego",
+  "item.emberwyrms.fire_dragon_spawn_egg": "Huevo generador de dragón de fuego",
+  "entity.emberwyrms.ice_dragon": "Dragón de hielo",
+  "item.emberwyrms.ice_dragon_scale": "Escama de dragón de hielo",
+  "block.emberwyrms.ice_dragon_egg": "Huevo de dragón de hielo",
+  "item.emberwyrms.ice_dragon_spawn_egg": "Huevo generador de dragón de hielo",
+  "entity.emberwyrms.storm_dragon": "Dragón de rayo",
+  "item.emberwyrms.storm_dragon_scale": "Escama de dragón de rayo",
+  "block.emberwyrms.storm_dragon_egg": "Huevo de dragón de rayo",
+  "item.emberwyrms.storm_dragon_spawn_egg": "Huevo generador de dragón de rayo",
+  "entity.emberwyrms.tide_dragon": "Dragón de agua",
+  "item.emberwyrms.tide_dragon_scale": "Escama de dragón de agua",
+  "block.emberwyrms.tide_dragon_egg": "Huevo de dragón de agua",
+  "item.emberwyrms.tide_dragon_spawn_egg": "Huevo generador de dragón de agua"
 }
