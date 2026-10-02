@@ -17,6 +17,7 @@ jobs:
           python3 tools/generate.py
           python3 tools/gen_assets.py
           python3 tools/gen_worldgen.py
+          python3 tools/gen_sounds.py
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: current
