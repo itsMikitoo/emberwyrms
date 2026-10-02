@@ -1,5 +1,6 @@
 package io.emberwyrms.entity;
 
+import io.emberwyrms.ModSounds;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
@@ -27,7 +28,8 @@ public class MedusaEntity extends HostileEntity {
                 .add(EntityAttributes.MAX_HEALTH, 40.0)
                 .add(EntityAttributes.MOVEMENT_SPEED, 0.26)
                 .add(EntityAttributes.ATTACK_DAMAGE, 6.0)
-                .add(EntityAttributes.FOLLOW_RANGE, 24.0);
+                .add(EntityAttributes.FOLLOW_RANGE, 24.0)
+                .add(EntityAttributes.SCALE, 1.3);
     }
 
     @Override
@@ -60,11 +62,11 @@ public class MedusaEntity extends HostileEntity {
     }
 
     @Override
-    protected SoundEvent getAmbientSound() { return SoundEvents.ENTITY_SPIDER_AMBIENT; }
+    protected SoundEvent getAmbientSound() { return ModSounds.MEDUSA_AMBIENT; }
 
     @Override
-    protected SoundEvent getHurtSound(DamageSource source) { return SoundEvents.ENTITY_SPIDER_HURT; }
+    protected SoundEvent getHurtSound(DamageSource source) { return ModSounds.MEDUSA_HURT; }
 
     @Override
-    protected SoundEvent getDeathSound() { return SoundEvents.ENTITY_SPIDER_DEATH; }
+    protected SoundEvent getDeathSound() { return ModSounds.MEDUSA_DEATH; }
 }

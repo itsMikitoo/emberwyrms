@@ -4,7 +4,7 @@ Una sola fuente de verdad: las piezas se definen aqui, el UV se empaqueta
 automaticamente y la textura se pinta con exactamente ese UV.
 Uso:  python3 tools/generate.py      (desde la raiz del proyecto)"""
 import os, zlib, math, random
-from PIL import Image
+from PIL import Image, ImageDraw
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 JAVA = os.path.join(ROOT, 'src/main/java/io/emberwyrms/client')
@@ -161,15 +161,17 @@ def pixel(mat, i, j, w, h, face, pal, rng, seed):
         return c
     if mat == 'cloth':
         c = shade(base, 1 + n); return shade(c, 0.8) if (i % 2 == 0) ^ (j % 2 == 0) else c
-    if mat == 'face':
-        if face != 'front': return shade(pal['skin'], 1 + n)
-        c = shade(pal['skin'], 1 + n * 2)
-        if j == 2 and (1 <= i <= 2 or 5 <= i <= 6): return shade(pal['hair_dark'], 1)
-        if j in (3, 4) and i in (1, 2, 5, 6): return pal['eye']
-        if j == 5 and i in (3, 4): return shade(c, 0.8)
-        if j == 6 and 2 <= i <= 5: return pal['hair_dark']
-        if j == 6 and i in (2, 5): return pal['teeth']
+    if mat == 'skin':
+        c = shade(base, 1.1 - 0.25 * j / max(1, h - 1) + 0.16 * (vnoise(i, j, 4, seed) - 0.5) + n)
+        if vnoise(i, j, 2.5, seed + 4) > 0.8: c = mix(c, pal.get('scale', base), 0.4)
         return c
+    if mat == 'face':
+        if face != 'front': return shade(pal['skin'], 0.92 + 0.2 * vnoise(i, j, 3, seed))
+        FACE = ["ssssssss", "sddssdds", "sYPssPYs", "sYPssPYs", "sssnnsss", "ssnnnnss", "ssmmmmss", "sfsmmsfs"]
+        ch = FACE[min(j, 7)][min(i, 7)]
+        skin = shade(pal['skin'], 0.95 + 0.14 * vnoise(i, j, 3, seed))
+        return {'s': skin, 'd': pal['hair_dark'], 'Y': pal['eye'], 'P': (12, 20, 12), 'n': shade(skin, 0.78),
+                'm': (110, 28, 40), 'f': pal['teeth']}[ch]
     return (255, 0, 255)
 
 def paint(parts, size, pos, pal, name, sub='entity'):
@@ -237,7 +239,7 @@ def build(cls, state, parts, pal, tex, anim):
     return parts, size, pos
 
 # =================================================================== DRAGON V2 (realista)
-HIND_L, HIND_A = (6.5, 7.5, 5.0), (-0.65, 0.55, -0.15)
+HIND_L, HIND_A = (8.0, 9.0, 6.0), (-0.7, 0.6, -0.2)
 FORE_L, FORE_A = (6.0, 6.0, 4.0), (0.40, -0.45, 0.10)
 HIP_REL_Y = 5.5
 NECK_REL = (-0.45, -0.25, -0.05, 0.1, 0.2, 0.2)
@@ -309,16 +311,14 @@ def ashwing():
                 cubes.append(C(ox(x0, ln), -0.5, bt / 2, ln, 1, wd, 'membrane', dil=(0, -0.25, 0)))
                 x0 += ln
             part('f%d_%s' % (k + 1, lr), 'fore_' + lr, (16 * sg, 0, 0), (0, -FING_ANG[k] * sg, 0), cubes)
-    for n, sx, z, hind in (('fl', 1, -11, False), ('fr', -1, -11, False), ('bl', 1, 9, True), ('br', -1, 9, True)):
-        Ls, As = (HIND_L, HIND_A) if hind else (FORE_L, FORE_A)
-        hy = HIP_REL_Y if hind else fore_hip
-        up = [C(-4, -2.5, -4, 8, math.ceil(Ls[0]) + 3, 8, 'scale'), C(-5, -5, -5, 10, 10, 10, 'scale')] if hind else \
-             [C(-3.5, -2.5, -3.5, 7, math.ceil(Ls[0]) + 3, 7, 'scale'), C(-4.5, -4.5, -5, 9, 9, 10, 'scale')]
-        part('leg_' + n, 'body', ((7 if hind else 7.5) * sx, hy, z), (As[0], 0, 0), up)
-        part('shin_' + n, 'leg_' + n, (0, Ls[0], 0), (As[1] - As[0], 0, 0), [C(-2.5, -1, -2.5, 5, math.ceil(Ls[1]) + 1, 5, 'scale')])
-        part('meta_' + n, 'shin_' + n, (0, Ls[1], 0), (As[2] - As[1], 0, 0), [C(-2, -0.5, -2, 4, math.ceil(Ls[2]) + 1, 4, 'scale')])
-        part('foot_' + n, 'meta_' + n, (0, Ls[2], 0), (-As[2], 0, 0), [C(-3.5, -1, -9, 7, 2, 11, 'scale'),
-             C(-3.5, -0.5, -13, 2, 1, 4, 'claw'), C(-1, -0.5, -13, 2, 1, 4, 'claw'), C(1.5, -0.5, -13, 2, 1, 4, 'claw')])
+    for n, sx in (('bl', 1), ('br', -1)):
+        Ls, As = HIND_L, HIND_A
+        up = [C(-5, -3, -5, 10, math.ceil(Ls[0]) + 3, 10, 'scale'), C(-6, -6, -6, 12, 12, 12, 'scale')]
+        part('leg_' + n, 'body', (8 * sx, HIP_REL_Y, 2), (As[0], 0, 0), up)
+        part('shin_' + n, 'leg_' + n, (0, Ls[0], 0), (As[1] - As[0], 0, 0), [C(-3, -1, -3, 6, math.ceil(Ls[1]) + 1, 6, 'scale')])
+        part('meta_' + n, 'shin_' + n, (0, Ls[1], 0), (As[2] - As[1], 0, 0), [C(-2.5, -0.5, -2.5, 5, math.ceil(Ls[2]) + 1, 5, 'scale')])
+        part('foot_' + n, 'meta_' + n, (0, Ls[2], 0), (-As[2], 0, 0), [C(-4.5, -1, -11, 9, 2, 14, 'scale'),
+             C(-4.5, -0.5, -16, 3, 1, 5, 'claw'), C(-1.5, -0.5, -16, 3, 1, 5, 'claw'), C(1.5, -0.5, -16, 3, 1, 5, 'claw')])
     return P
 
 ASH_ANIM = r'''    private static final float HA1 = @HA1@, HR2 = @HR2@, HR3 = @HR3@, HF = @HF@;
@@ -347,7 +347,7 @@ ASH_ANIM = r'''    private static final float HA1 = @HA1@, HR2 = @HR2@, HR3 = @H
         boolean fly = s.flying;
 
         this.frame.pitch = sit ? -0.4f : (fly ? 0.12f : 0f);
-        this.body.pitch = breathe * 0.01f;
+        this.body.pitch = breathe * 0.01f + sin(f * 2f) * 0.03f * amp;
 
         ModelPart[] neck = {neck1, neck2, neck3, neck4, neck5, neck6};
         for (int i = 0; i < 6; i++) {
@@ -373,9 +373,6 @@ ASH_ANIM = r'''    private static final float HA1 = @HA1@, HR2 = @HR2@, HR3 = @H
         float sa = sit ? -0.2f : (fly ? 0.2f : 0f);
         leg(legBl, shinBl, metaBl, footBl, HA1, HR2, HR3, HF, swA * 0.55f + sh, liftA * 0.7f + sk, -liftA * 0.35f + sa);
         leg(legBr, shinBr, metaBr, footBr, HA1, HR2, HR3, HF, swB * 0.55f + sh, liftB * 0.7f + sk, -liftB * 0.35f + sa);
-        float fh = fly ? 0.6f : 0f;
-        leg(legFr, shinFr, metaFr, footFr, FA1, FR2, FR3, FF, swA * 0.5f + fh, liftA * 0.6f + fh, -liftA * 0.3f);
-        leg(legFl, shinFl, metaFl, footFl, FA1, FR2, FR3, FF, swB * 0.5f + fh, liftB * 0.6f + fh, -liftB * 0.3f);
 
         float fold = fly ? 0f : 0.9f;
         float flap = fly ? sin(t * 0.3f) : sin(t * 0.1f) * 0.04f;
@@ -383,6 +380,7 @@ ASH_ANIM = r'''    private static final float HA1 = @HA1@, HR2 = @HR2@, HR3 = @H
         this.wingR.yaw = -this.wingL.yaw;
         this.wingL.roll = 0.3f * fold - flap * (fly ? 0.75f : 1f);
         this.wingR.roll = -this.wingL.roll;
+        if (!fly) { this.wingL.yaw += swA * 0.14f; this.wingR.yaw += swB * 0.14f; }
         this.armL.roll = fly ? -flap * 0.25f : 0f;
         this.armR.roll = -this.armL.roll;
         this.foreL.yaw = -1.2f * fold;
@@ -504,7 +502,7 @@ def medusa():
     part('coil6', 'coil5', (0, 0, 7), (0, 0.25, 0), [C(-1, -1, 0, 2, 2, 6, 'scale')])
     part('torso', None, (0, 16, -1), cubes=[C(-4, -12, -2.5, 8, 12, 5, 'skin'),
          C(-4.5, -11, -3, 9, 4, 6, 'cloth'), C(-4.5, -2, -3, 9, 2, 6, 'gold')])
-    part('head', 'torso', (0, -12, 0), cubes=[C(-4, -8, -4, 8, 8, 8, 'face'), C(-4.5, -7, -4.5, 9, 1, 9, 'gold')])
+    part('head', 'torso', (0, -12, 0), cubes=[C(-4, -8, -4, 8, 8, 8, 'face'), C(-4.5, -7, -4.5, 9, 1, 9, 'gold'), C(-8, -10, 4, 16, 14, 1, 'scale')])
     for lr, s in (('l', 1), ('r', -1)):
         part('arm_' + lr, 'torso', (5.5 * s, -11, 0), cubes=[C(-1.5, -1, -1.5, 3, 10, 3, 'skin'), C(-2, 5, -2, 4, 2, 4, 'gold'),
              C(-1.5, 9, -1.5, 3, 2, 3, 'skin'), C(-1.5, 11, -1.5, 1, 2, 1, 'claw'), C(-0.5, 11, -1.5, 1, 2, 1, 'claw'), C(0.5, 11, -1.5, 1, 2, 1, 'claw')])
@@ -559,9 +557,9 @@ def med_anim():
         }
     }''' % (bx, bz)
 
-MED_PAL = dict(scale=(52, 122, 64), skin=(112, 164, 92), cloth=(96, 44, 118), gold=(224, 184, 64),
+MED_PAL = dict(scale=(40, 108, 58), belly=(204, 220, 128), mark=(24, 80, 44), mark_style='spots', scale_size=3.0, skin=(116, 168, 94), cloth=(96, 44, 118), gold=(224, 184, 64),
                snake=(66, 140, 62), eye=(232, 255, 70), hair_dark=(30, 60, 34), teeth=(240, 240, 220), claw=(40, 34, 40),
-               ember=(0, 0, 0))
+               ember=(150, 230, 90))
 
 
 # =================================================================== DRAGONES ELEMENTALES
@@ -847,6 +845,25 @@ def wings_texture(el, pal):
     d = os.path.join(TEX, 'entity', 'equipment', 'wings'); os.makedirs(d, exist_ok=True)
     img.save(os.path.join(d, el + '_dragon.png'))
 
+def food_icon(name, kind, c1, c2):
+    img = Image.new('RGBA', (16, 16), (0, 0, 0, 0)); d = ImageDraw.Draw(img); rng = random.Random(name)
+    dk = shade(c1, 0.45)
+    if kind == 'steak':
+        d.ellipse([1, 4, 13, 13], fill=dk + (255,)); d.ellipse([2, 5, 12, 12], fill=c1 + (255,)); d.ellipse([3, 6, 8, 9], fill=shade(c1, 1.25) + (255,))
+        for _ in range(7): d.point((rng.randint(3, 11), rng.randint(6, 11)), fill=c2 + (255,))
+        d.rectangle([11, 10, 14, 12], fill=(236, 226, 200, 255)); d.rectangle([13, 9, 14, 13], fill=(236, 226, 200, 255))
+    elif kind == 'fish':
+        d.polygon([(1, 8), (5, 4), (11, 5), (13, 8), (11, 11), (5, 12)], fill=c1 + (255,))
+        d.polygon([(12, 8), (15, 4), (15, 12)], fill=shade(c1, 0.72) + (255,))
+        d.polygon([(5, 4), (8, 1), (10, 5)], fill=shade(c1, 0.8) + (255,))
+        d.line([(3, 10), (11, 10)], fill=c2 + (255,)); d.point((3, 7), fill=(10, 10, 14, 255))
+        for k in range(4): d.point((6 + k * 1, 6 + (k % 2)), fill=shade(c1, 1.3) + (255,))
+    else:
+        d.polygon([(1, 12), (4, 9), (14, 4), (15, 7), (5, 14)], fill=c1 + (255,))
+        d.line([(3, 11), (13, 6)], fill=shade(c1, 1.3) + (255,))
+        for _ in range(6): d.point((rng.randint(2, 14), rng.randint(3, 13)), fill=c2 + (255,))
+    img.save(os.path.join(TEX, 'item', name + '.png'))
+
 # =================================================================== ICONOS
 def egg(name, c1, c2):
     img = Image.new('RGBA', (16, 16), (0, 0, 0, 0)); px = img.load(); rng = random.Random(name)
@@ -886,3 +903,5 @@ if __name__ == '__main__':
             armor_icon('%s_dragon_%s' % (el, piece), piece, pl)
     eggblock('phoenix_egg', (222, 72, 30), (255, 210, 70)); feather_icon()
     horn_icon(); heart_icon(); egg('ash_dragon_spawn_egg', (30, 28, 32), (255, 112, 24))
+    food_icon('cinder_steak', 'steak', (150, 52, 30), (255, 170, 40)); food_icon('frost_fish', 'fish', (140, 196, 232), (240, 250, 255))
+    food_icon('storm_jerky', 'jerky', (96, 70, 120), (255, 232, 90)); food_icon('tide_catch', 'fish', (36, 150, 150), (200, 250, 230))

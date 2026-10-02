@@ -4,6 +4,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.*;
+import io.emberwyrms.ModSounds;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.boss.BossBar;
@@ -52,7 +53,7 @@ public class AshDragonEntity extends HostileEntity {
                 .add(EntityAttributes.ARMOR, 10.0)
                 .add(EntityAttributes.KNOCKBACK_RESISTANCE, 1.0)
                 .add(EntityAttributes.STEP_HEIGHT, 2.0)
-                .add(EntityAttributes.SCALE, 1.7);
+                .add(EntityAttributes.SCALE, 1.9);
     }
 
     @Override
@@ -106,7 +107,7 @@ public class AshDragonEntity extends HostileEntity {
         this.breathCooldown = enraged ? 50 : 90;
         this.breathingTicks = 20;
         this.dataTracker.set(BREATHING, true);
-        this.playSound(SoundEvents.ENTITY_ENDER_DRAGON_GROWL, 2.0f, 0.7f);
+        this.playSound(ModSounds.DRAGON_BREATH, 2.2f, 0.7f);
 
         Vec3d from = new Vec3d(this.getX(), this.getEyeY() - 0.3, this.getZ());
         Vec3d to = new Vec3d(t.getX(), t.getBodyY(0.5), t.getZ());
@@ -128,7 +129,7 @@ public class AshDragonEntity extends HostileEntity {
 
     private void stomp(ServerWorld sw, boolean enraged) {
         this.stompCooldown = enraged ? 140 : 240;
-        this.playSound(SoundEvents.ENTITY_ENDER_DRAGON_GROWL, 2.0f, 0.5f);
+        this.playSound(ModSounds.DRAGON_ROAR, 2.4f, 0.6f);
         for (int k = 0; k < 24; k++) {
             double a = k * Math.PI / 12.0;
             for (double r : new double[]{3.0, 6.0}) {
@@ -165,11 +166,11 @@ public class AshDragonEntity extends HostileEntity {
     }
 
     @Override
-    protected SoundEvent getAmbientSound() { return SoundEvents.ENTITY_ENDER_DRAGON_GROWL; }
+    protected SoundEvent getAmbientSound() { return ModSounds.DRAGON_AMBIENT; }
 
     @Override
-    protected SoundEvent getHurtSound(DamageSource source) { return SoundEvents.ENTITY_ENDER_DRAGON_HURT; }
+    protected SoundEvent getHurtSound(DamageSource source) { return ModSounds.DRAGON_HURT; }
 
     @Override
-    protected SoundEvent getDeathSound() { return SoundEvents.ENTITY_ENDER_DRAGON_DEATH; }
+    protected SoundEvent getDeathSound() { return ModSounds.DRAGON_DEATH; }
 }

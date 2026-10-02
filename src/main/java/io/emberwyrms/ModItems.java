@@ -20,6 +20,10 @@ public class ModItems {
     public static final Item STORM_DRAGON_SCALE = reg("storm_dragon_scale", Item::new);
     public static final Item TIDE_DRAGON_SCALE = reg("tide_dragon_scale", Item::new);
 
+    public static final Item CINDER_STEAK = reg("cinder_steak", Item::new);
+    public static final Item FROST_FISH = reg("frost_fish", Item::new);
+    public static final Item STORM_JERKY = reg("storm_jerky", Item::new);
+    public static final Item TIDE_CATCH = reg("tide_catch", Item::new);
     public static final Item DRAGON_HORN = reg("dragon_horn", s -> new DragonHornItem(s.maxCount(1)));
     public static final Item ASH_HEART = reg("ash_heart", Item::new);
     public static final Item ASH_DRAGON_SPAWN_EGG = reg("ash_dragon_spawn_egg", s -> new SpawnEggItem(s.spawnEgg(ModEntities.ASH_DRAGON)));
@@ -38,6 +42,15 @@ public class ModItems {
     public static final Item ICE_DRAGON_SPAWN_EGG = reg("ice_dragon_spawn_egg", s -> new SpawnEggItem(s.spawnEgg(ModEntities.ICE_DRAGON)));
     public static final Item STORM_DRAGON_SPAWN_EGG = reg("storm_dragon_spawn_egg", s -> new SpawnEggItem(s.spawnEgg(ModEntities.STORM_DRAGON)));
     public static final Item TIDE_DRAGON_SPAWN_EGG = reg("tide_dragon_spawn_egg", s -> new SpawnEggItem(s.spawnEgg(ModEntities.TIDE_DRAGON)));
+
+    public static Item foodOf(io.emberwyrms.entity.DragonElement element) {
+        return switch (element) {
+            case FIRE -> CINDER_STEAK;
+            case ICE -> FROST_FISH;
+            case STORM -> STORM_JERKY;
+            case TIDE -> TIDE_CATCH;
+        };
+    }
 
     public static Item eggOf(io.emberwyrms.entity.DragonElement element) {
         return switch (element) {

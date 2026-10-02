@@ -12,11 +12,13 @@ public class Emberwyrms implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        ModSounds.register();
         ModEntities.register();
         ModBlocks.register();
         ModItems.register();
         ModArmor.register();
         ArmorPerks.register();
         ModItemGroups.register();
+        io.emberwyrms.world.ModFeatures.register();
     }
 }

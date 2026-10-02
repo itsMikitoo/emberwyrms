@@ -81,5 +81,27 @@ es.update({"entity.emberwyrms.dragon.info": "Etapa %1$s - día %2$s - %3$s", "en
            "item.emberwyrms.dragon_horn.unavailable": "La Tierra de Dragones no está disponible",
            "biome.emberwyrms.volcanic_peaks": "Picos Volcánicos", "biome.emberwyrms.glacial_spires": "Agujas Glaciales",
            "biome.emberwyrms.storm_plateau": "Meseta de la Tormenta", "biome.emberwyrms.tide_marsh": "Marisma de la Marea"})
+
+# ---- Fase 6: comida de dragon, aldea de dragones, tablas de botin
+FOODS = {'fire': ('cinder_steak', 'Cinder Steak', 'Filete de ceniza', ['minecraft:cooked_beef', 'minecraft:blaze_powder']),
+         'ice': ('frost_fish', 'Frost Fish', 'Pescado glacial', ['minecraft:cod', 'minecraft:packed_ice']),
+         'storm': ('storm_jerky', 'Storm Jerky', 'Cecina de tormenta', ['minecraft:cooked_mutton', 'minecraft:redstone']),
+         'tide': ('tide_catch', 'Tide Catch', 'Captura de marea', ['minecraft:salmon', 'minecraft:kelp'])}
+for el, (fid, f_en, f_es, ing) in FOODS.items():
+    item_def(fid); flat(fid)
+    w(D + 'recipe/%s.json' % fid, {'type': 'minecraft:crafting_shapeless', 'category': 'misc', 'ingredients': ing,
+      'result': {'id': 'emberwyrms:' + fid, 'count': 2}})
+    en['item.emberwyrms.' + fid] = f_en; es['item.emberwyrms.' + fid] = f_es
+os.makedirs(D + 'loot_table/chests', exist_ok=True); os.makedirs(D + 'worldgen/configured_feature', exist_ok=True); os.makedirs(D + 'worldgen/placed_feature', exist_ok=True)
+def entry(name, weight, lo=1, hi=1): return {'type': 'minecraft:item', 'name': name, 'weight': weight, 'functions': count(lo, hi)}
+w(D + 'loot_table/chests/dragon_village.json', {'type': 'minecraft:chest', 'pools': [{'rolls': {'type': 'minecraft:uniform', 'min': 4, 'max': 7}, 'entries':
+  [entry('emberwyrms:emberscale', 20, 1, 4), entry('emberwyrms:phoenix_feather', 6, 1, 2), entry('minecraft:gold_ingot', 16, 2, 6),
+   entry('minecraft:iron_ingot', 16, 2, 7), entry('minecraft:diamond', 4, 1, 2), entry('minecraft:emerald', 6, 1, 4), entry('minecraft:golden_apple', 3)] +
+  [entry('emberwyrms:%s_dragon_scale' % e, 10, 1, 3) for e in EL] + [entry('emberwyrms:%s' % FOODS[e][0], 10, 2, 5) for e in EL]}]})
+w(D + 'worldgen/configured_feature/dragon_village.json', {'type': 'emberwyrms:dragon_village', 'config': {}})
+w(D + 'worldgen/placed_feature/dragon_village.json', {'feature': 'emberwyrms:dragon_village', 'placement': [
+  {'type': 'minecraft:rarity_filter', 'chance': 160}, {'type': 'minecraft:in_square'},
+  {'type': 'minecraft:heightmap', 'heightmap': 'WORLD_SURFACE_WG'}, {'type': 'minecraft:biome'}]})
+
 w(A + 'lang/en_us.json', en); w(A + 'lang/es_es.json', es)
 print('assets ok:', len(en), 'textos')

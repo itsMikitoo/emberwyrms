@@ -1,5 +1,6 @@
 package io.emberwyrms.entity;
 
+import io.emberwyrms.ModSounds;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ai.control.FlightMoveControl;
 import net.minecraft.entity.ai.goal.*;
@@ -42,7 +43,8 @@ public class PhoenixEntity extends TameableEntity {
                 .add(EntityAttributes.MOVEMENT_SPEED, 0.25)
                 .add(EntityAttributes.FLYING_SPEED, 0.6)
                 .add(EntityAttributes.ATTACK_DAMAGE, 4.0)
-                .add(EntityAttributes.SAFE_FALL_DISTANCE, 64.0);
+                .add(EntityAttributes.SAFE_FALL_DISTANCE, 64.0)
+                .add(EntityAttributes.SCALE, 2.4);
     }
 
     @Override
@@ -104,11 +106,11 @@ public class PhoenixEntity extends TameableEntity {
     }
 
     @Override
-    protected SoundEvent getAmbientSound() { return SoundEvents.ENTITY_BLAZE_AMBIENT; }
+    protected SoundEvent getAmbientSound() { return ModSounds.PHOENIX_AMBIENT; }
 
     @Override
-    protected SoundEvent getHurtSound(DamageSource source) { return SoundEvents.ENTITY_BLAZE_HURT; }
+    protected SoundEvent getHurtSound(DamageSource source) { return ModSounds.PHOENIX_HURT; }
 
     @Override
-    protected SoundEvent getDeathSound() { return SoundEvents.ENTITY_BLAZE_DEATH; }
+    protected SoundEvent getDeathSound() { return ModSounds.PHOENIX_DEATH; }
 }

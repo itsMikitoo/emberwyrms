@@ -39,7 +39,7 @@ public class PhoenixEggBlock extends Block {
         if (phoenix == null) return;
         world.removeBlock(pos, false);
         phoenix.refreshPositionAndAngles(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, random.nextFloat() * 360f, 0f);
-        PlayerEntity near = world.getClosestPlayer(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 8.0, false);
+        PlayerEntity near = world.getClosestPlayer(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 64.0, false);
         if (near != null) phoenix.setOwner(near);
         world.spawnEntity(phoenix);
         world.playSound(null, pos, SoundEvents.ENTITY_TURTLE_EGG_HATCH, SoundCategory.BLOCKS, 1.0f, 1.3f);

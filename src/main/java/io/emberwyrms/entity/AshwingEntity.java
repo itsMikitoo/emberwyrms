@@ -1,5 +1,6 @@
 package io.emberwyrms.entity;
 
+import io.emberwyrms.ModSounds;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.*;
@@ -39,7 +40,8 @@ public class AshwingEntity extends TameableEntity {
                 .add(EntityAttributes.MOVEMENT_SPEED, 0.28)
                 .add(EntityAttributes.ATTACK_DAMAGE, 8.0)
                 .add(EntityAttributes.FOLLOW_RANGE, 32.0)
-                .add(EntityAttributes.STEP_HEIGHT, 1.1);
+                .add(EntityAttributes.STEP_HEIGHT, 1.1)
+                .add(EntityAttributes.SCALE, 1.2);
     }
 
     @Override
@@ -104,13 +106,13 @@ public class AshwingEntity extends TameableEntity {
     }
 
     @Override
-    protected SoundEvent getAmbientSound() { return SoundEvents.ENTITY_ENDER_DRAGON_GROWL; }
+    protected SoundEvent getAmbientSound() { return ModSounds.DRAGON_AMBIENT; }
 
     @Override
-    protected SoundEvent getHurtSound(DamageSource source) { return SoundEvents.ENTITY_ENDER_DRAGON_HURT; }
+    protected SoundEvent getHurtSound(DamageSource source) { return ModSounds.DRAGON_HURT; }
 
     @Override
-    protected SoundEvent getDeathSound() { return SoundEvents.ENTITY_ENDER_DRAGON_DEATH; }
+    protected SoundEvent getDeathSound() { return ModSounds.DRAGON_DEATH; }
 
     @Override
     public boolean canBeLeashed() { return false; }

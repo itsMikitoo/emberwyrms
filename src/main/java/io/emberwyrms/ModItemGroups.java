@@ -33,6 +33,10 @@ public class ModItemGroups {
                         entries.add(ModItems.TIDE_DRAGON_EGG);
                         entries.add(ModItems.PHOENIX_EGG);
                         entries.add(ModItems.PHOENIX_FEATHER);
+                        entries.add(ModItems.CINDER_STEAK);
+                        entries.add(ModItems.FROST_FISH);
+                        entries.add(ModItems.STORM_JERKY);
+                        entries.add(ModItems.TIDE_CATCH);
                         entries.add(ModItems.EMBERSCALE);
                         entries.add(ModItems.FIRE_DRAGON_SCALE);
                         entries.add(ModItems.ICE_DRAGON_SCALE);

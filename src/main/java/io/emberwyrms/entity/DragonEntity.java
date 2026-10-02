@@ -1,6 +1,7 @@
 package io.emberwyrms.entity;
 
 import io.emberwyrms.ModItems;
+import io.emberwyrms.ModSounds;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LightningEntity;
@@ -45,8 +46,8 @@ public class DragonEntity extends TameableEntity {
     public static final String INIT_TAG = "ew_init";
     public static final float TICKS_PER_DAY = 24000f;
     public static final float MAX_DAYS = 125f;
-    private static final double MIN_SCALE = 0.15;
-    private static final double SCALE_RANGE = 0.85;
+    private static final double MIN_SCALE = 0.2;
+    private static final double SCALE_RANGE = 1.2;   // tamaño adulto = 1.4
     private static final TrackedData<Boolean> BREATHING =
             DataTracker.registerData(DragonEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 
@@ -63,9 +64,9 @@ public class DragonEntity extends TameableEntity {
 
     public static DefaultAttributeContainer.Builder createAttributes() {
         return MobEntity.createMobAttributes()
-                .add(EntityAttributes.MAX_HEALTH, 120.0)
+                .add(EntityAttributes.MAX_HEALTH, 240.0)
                 .add(EntityAttributes.MOVEMENT_SPEED, 0.27)
-                .add(EntityAttributes.ATTACK_DAMAGE, 16.0)
+                .add(EntityAttributes.ATTACK_DAMAGE, 26.0)
                 .add(EntityAttributes.FOLLOW_RANGE, 32.0)
                 .add(EntityAttributes.STEP_HEIGHT, 1.2)
                 .add(EntityAttributes.SAFE_FALL_DISTANCE, 128.0);
@@ -89,12 +90,14 @@ public class DragonEntity extends TameableEntity {
         EntityAttributeInstance hp = this.getAttributeInstance(EntityAttributes.MAX_HEALTH);
         if (hp != null) {
             float old = this.getMaxHealth();
-            hp.setBaseValue(10.0 + 110.0 * f);
+            hp.setBaseValue(20.0 + 220.0 * f);
             float now = this.getMaxHealth();
             if (now > old) this.heal(now - old);
         }
         EntityAttributeInstance atk = this.getAttributeInstance(EntityAttributes.ATTACK_DAMAGE);
-        if (atk != null) atk.setBaseValue(2.0 + 14.0 * f);
+        if (atk != null) atk.setBaseValue(3.0 + 23.0 * f);
+        EntityAttributeInstance armor = this.getAttributeInstance(EntityAttributes.ARMOR);
+        if (armor != null) armor.setBaseValue(2.0 + 12.0 * f);
     }
 
     public int getStage() {
@@ -141,11 +144,18 @@ public class DragonEntity extends TameableEntity {
         this.targetSelector.add(1, new TrackOwnerAttackerGoal(this));
         this.targetSelector.add(2, new AttackWithOwnerGoal(this));
         this.targetSelector.add(3, new RevengeGoal(this));
+        // los dragones que no son tuyos son hostiles (desde la etapa 3)
+        this.targetSelector.add(4, new ActiveTargetGoal<>(this, PlayerEntity.class, true) {
+            @Override
+            public boolean canStart() {
+                return !DragonEntity.this.isTamed() && DragonEntity.this.getStage() >= 3 && super.canStart();
+            }
+        });
     }
 
     @Override
     public boolean isBreedingItem(ItemStack stack) {
-        return stack.isIn(ItemTags.MEAT);
+        return stack.isOf(ModItems.foodOf(this.element));   // cada elemento tiene su propia comida
     }
 
     // ------------------------------------------------------------------ tick
@@ -165,13 +175,11 @@ public class DragonEntity extends TameableEntity {
             this.ageAccumulator = 0;
             this.setAgeDays(this.getAgeDays() + 100f / TICKS_PER_DAY);
         }
-        if (this.getVehicle() instanceof PlayerEntity carrier && (carrier.isSneaking() || this.getStage() >= 3 || !this.isTamed())) {
-            this.stopRiding();
-        }
         if (this.breathingTicks > 0 && --this.breathingTicks == 0) this.dataTracker.set(BREATHING, false);
         if (this.breathCooldown > 0) this.breathCooldown--;
         LivingEntity rider = this.getControllingPassenger();
         if (rider != null && this.breathCooldown <= 0) this.riderBreath(sw, rider);
+        if (rider != null && !this.isOnGround() && this.age % 16 == 0) this.playSound(ModSounds.DRAGON_FLAP, 1.6f, 1.0f);
         LivingEntity t = this.getTarget();
         if (t != null && t.isAlive() && this.breathCooldown <= 0 && this.getStage() >= 2 && !this.isSitting()) {
             float d = this.distanceTo(t);
@@ -188,7 +196,8 @@ public class DragonEntity extends TameableEntity {
         this.breathCooldown = 60 + this.random.nextInt(40);
         this.breathingTicks = 15;
         this.dataTracker.set(BREATHING, true);
-        this.playSound(this.element.sound, 1.5f, 0.8f);
+        this.playSound(ModSounds.DRAGON_BREATH, 1.8f, 0.9f);
+        this.playSound(this.element.sound, 1.2f, 0.8f);
 
         Vec3d from = new Vec3d(this.getX(), this.getEyeY() - 0.2, this.getZ());
         Vec3d to = new Vec3d(t.getX(), t.getBodyY(0.5), t.getZ());
@@ -264,7 +273,7 @@ public class DragonEntity extends TameableEntity {
             }
             return ActionResult.SUCCESS;
         }
-        if (this.isTamed() && this.isBreedingItem(stack) && this.getHealth() < this.getMaxHealth()) {
+        if (this.isTamed() && (this.isBreedingItem(stack) || stack.isIn(ItemTags.MEAT)) && this.getHealth() < this.getMaxHealth()) {
             if (server) {
                 stack.decrementUnlessCreative(1, player);
                 this.heal(10.0f);
@@ -280,8 +289,7 @@ public class DragonEntity extends TameableEntity {
                     this.setTarget(null);
                     player.sendMessage(this.info(), true);
                 } else if (this.getStage() <= 2) {
-                    this.setSitting(false);
-                    this.startRiding(player, true, true);
+                    player.sendMessage(this.info(), true);   // las crias todavia no se pueden montar
                 } else {
                     this.setSitting(false);
                     player.startRiding(this);
@@ -384,11 +392,11 @@ public class DragonEntity extends TameableEntity {
     }
 
     @Override
-    protected SoundEvent getAmbientSound() { return SoundEvents.ENTITY_ENDER_DRAGON_GROWL; }
+    protected SoundEvent getAmbientSound() { return ModSounds.DRAGON_AMBIENT; }
 
     @Override
-    protected SoundEvent getHurtSound(DamageSource source) { return SoundEvents.ENTITY_ENDER_DRAGON_HURT; }
+    protected SoundEvent getHurtSound(DamageSource source) { return ModSounds.DRAGON_HURT; }
 
     @Override
-    protected SoundEvent getDeathSound() { return SoundEvents.ENTITY_ENDER_DRAGON_DEATH; }
+    protected SoundEvent getDeathSound() { return ModSounds.DRAGON_DEATH; }
 }

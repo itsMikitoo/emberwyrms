@@ -31,6 +31,15 @@ public class ModBlocks {
         return Registry.register(Registries.BLOCK, key, new DragonEggBlock(settings, element));
     }
 
+    public static Block eggOf(io.emberwyrms.entity.DragonElement element) {
+        return switch (element) {
+            case FIRE -> FIRE_DRAGON_EGG;
+            case ICE -> ICE_DRAGON_EGG;
+            case STORM -> STORM_DRAGON_EGG;
+            case TIDE -> TIDE_DRAGON_EGG;
+        };
+    }
+
     public static void register() {
     }
 }
