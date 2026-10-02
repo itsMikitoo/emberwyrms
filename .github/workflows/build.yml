@@ -11,11 +11,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - name: Generar modelos, texturas y recursos
-        run: |
-          pip install pillow
-          python3 tools/generate.py
-          python3 tools/gen_assets.py
+            - name: Generar modelos, texturas y recursos
         run: |
           pip install pillow
           python3 tools/generate.py
