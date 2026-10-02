@@ -77,6 +77,9 @@ def pixel(mat, i, j, w, h, face, pal, rng, seed):
     if mat == 'spike':
         return shade(base, 1.15 - 0.5 * j / max(1, h - 1) + n)
     if mat == 'eye': return base
+    if mat == 'crystal':
+        facet = (i * 3 + j * 2) % 5
+        return shade(base, 0.82 + facet * 0.08 + n)
     if mat == 'feather':
         t = (i + j) / max(1, w + h); c = mix(pal['f_a'], pal['f_b'], t)
         return shade(c, 0.9 + n) if i % 2 == 0 else shade(c, 1.04 + n)
@@ -119,7 +122,11 @@ def paint(parts, size, pos, pal, name):
             m = fo.get(face, mat)
             for j in range(fh):
                 for i in range(fw):
-                    px[fx + i, fy + j] = pixel(m, i, j, fw, fh, face, pal, rng, seed) + (255,)
+                    c = pixel(m, i, j, fw, fh, face, pal, rng, seed)
+                    if m not in ('eye', 'flame'):
+                        c = shade(c, {'top': 1.12, 'bottom': 0.78, 'right': 0.92, 'left': 0.92, 'front': 1.0, 'back': 0.95}[face])
+                        if fw >= 4 and fh >= 4 and (i in (0, fw - 1) or j in (0, fh - 1)): c = shade(c, 0.9)
+                    px[fx + i, fy + j] = c + (255,)
     img.save(os.path.join(TEX, 'entity', name + '.png'))
 
 # ------------------------------------------------------------------ java
@@ -189,11 +196,13 @@ def ashwing():
         C(3.3, -2, -6, 1, 1, 2, 'eye'), C(-4.3, -2, -6, 1, 1, 2, 'eye'),
         C(3.5, -1, -3, 1, 2, 3, 'spike'), C(-4.5, -1, -3, 1, 2, 3, 'spike'),
         C(-0.5, -5, -6, 1, 2, 4, 'spike'), C(-0.5, -5, -1, 1, 2, 3, 'spike')])
-    part('jaw', 'head', (0, 1.5, -1), cubes=[C(-2.5, 0, -12, 5, 1, 11, 'scale', {'top': 'plate'}),
+    part('jaw', 'head', (0, 1.5, -1), cubes=[C(-2.5, 0, -12, 5, 1, 11, 'scale', {'top': 'plate'}), C(-0.5, 1, -12, 1, 2, 1, 'spike'),
         C(-2, -1, -12, 1, 1, 2, 'teeth'), C(1, -1, -12, 1, 1, 2, 'teeth')])
     for lr, s in (('l', 1), ('r', -1)):
         part('horn_' + lr, 'head', (3 * s, -3, -1), (0.7, 0.3 * s, 0), [C(-1, -1, 0, 2, 2, 6, 'horn')])
         part('horn_%s_tip' % lr, 'horn_' + lr, (0, 0, 6), (0.35, 0.15 * s, 0), [C(-0.5, -0.5, 0, 1, 1, 5, 'horn')])
+    for lr, s_ in (('l', 1), ('r', -1)):
+        part('frill_' + lr, 'neck2', (2.5 * s_, 0, -3), (0, -0.5 * s_, 0), [C(0 if s_ > 0 else -5, -3, 0, 5, 6, 1, 'membrane', dil=(0, 0, -0.25))])
     tl = [(9, 3, 'scale'), (9, 2.5, 'scale'), (9, 2, 'scale'), (8, 1.5, 'scale')]
     part('tail1', 'body', (0, -1, 10), cubes=[C(-3, -3, 0, 6, 6, 9, 'scale', {'bottom': 'plate'}), C(-0.5, -5, 2, 1, 2, 3, 'spike')])
     part('tail2', 'tail1', (0, 0, 9), cubes=[C(-2.5, -2.5, 0, 5, 5, 9, 'scale', {'bottom': 'plate'}), C(-0.5, -4.5, 2, 1, 2, 3, 'spike')])
@@ -211,7 +220,8 @@ def ashwing():
                 C(ox(ln), -0.5, -0.5, ln, 1, 1, 'bone'), C(ox(ln), -0.5, 0.5, ln, 1, 6, 'membrane', dil=(0, -0.25, 0))])
     for n, sx, z, hind in (('fl', 1, -8, 0), ('fr', -1, -8, 0), ('bl', 1, 7, 1), ('br', -1, 7, 1)):
         part('leg_' + n, 'body', ((6 if hind else 5.5) * sx, 4, z), cubes=[
-            C(-3, -2, -3.5, 6, 8, 7, 'scale') if hind else C(-2.5, -1, -3, 5, 6, 6, 'scale')])
+            *([C(-3, -2, -3.5, 6, 8, 7, 'scale'), C(-3.5, -3, -3, 7, 5, 6, 'scale')] if hind else
+              [C(-2.5, -1, -3, 5, 6, 6, 'scale'), C(-3, -2, -3.5, 6, 4, 7, 'scale')])])
         part('shin_' + n, 'leg_' + n, (0, 6 if hind else 5, 0), cubes=[C(-2, 0, -2, 4, 3 if hind else 4, 4, 'scale')])
         part('foot_' + n, 'shin_' + n, (0, 3 if hind else 4, 0), cubes=[C(-2.5, 0, -4, 5, 1, 6, 'scale'),
              C(-2, 0, -6, 1, 1, 2, 'claw'), C(-0.5, 0, -6, 1, 1, 2, 'claw'), C(1, 0, -6, 1, 1, 2, 'claw')])
@@ -235,8 +245,8 @@ ASH_ANIM = '''    @Override
         this.neck1.yaw = yawLook * 0.3f;
         this.neck2.yaw = yawLook * 0.3f;
         this.head.yaw = yawLook * 0.4f;
-        this.head.pitch = 0.4f + pitchLook * 0.6f + breathe * 0.02f;
-        this.jaw.pitch = 0.06f + (breathe + 1f) * 0.04f;
+        this.head.pitch = 0.4f + pitchLook * 0.6f + breathe * 0.02f - (s.breathing ? 0.3f : 0f);
+        this.jaw.pitch = s.breathing ? 0.8f : 0.06f + (breathe + 1f) * 0.04f;
 
         float sway = sin(t * 0.07f);
         float walkSway = cos(f) * 0.1f * amp;
@@ -430,6 +440,73 @@ MED_PAL = dict(scale=(52, 122, 64), skin=(112, 164, 92), cloth=(96, 44, 118), go
                snake=(66, 140, 62), eye=(232, 255, 70), hair_dark=(30, 60, 34), teeth=(240, 240, 220), claw=(40, 34, 40),
                ember=(0, 0, 0))
 
+
+# =================================================================== DRAGONES ELEMENTALES
+def elemental(el):
+    P = ashwing()
+    def part(*a, **k): P.append(Part(*a, **k))
+    sides = (('l', 1), ('r', -1))
+    ox = lambda sg, L: 0 if sg > 0 else -L
+    if el == 'fire':
+        for lr, sg in sides:
+            part('brow_' + lr, 'head', (2.5 * sg, -4, -6), (0.15, -0.35 * sg, 0), [C(-0.5, -0.5, -6, 1, 1, 6, 'horn')])
+        part('tail_flame', 'tail_tip', (0, 0, 6), cubes=[C(-0.5, -3, 0, 1, 6, 6, 'flame'), C(-2.5, -0.5, 0, 5, 1, 4, 'flame')])
+        for k in range(3):
+            part('ember_%d' % k, 'body', (0, -8, -5 + k * 6), cubes=[C(-1, -5, -1, 2, 4, 2, 'flame')])
+    elif el == 'ice':
+        for k, z in enumerate((-8, -4, 0, 4, 8)):
+            part('crystal_%d' % k, 'body', (0, -7, z), cubes=[C(-1, -7 - (k % 2) * 2, -1, 2, 7 + (k % 2) * 2, 2, 'crystal')])
+        for lr, sg in sides:
+            part('crown_' + lr, 'head', (2 * sg, -3, -2), (-0.3, 0, 0.3 * sg), [C(-0.5, -6, -0.5, 1, 6, 1, 'crystal')])
+        part('tail_crystal', 'tail_tip', (0, 0, 6), cubes=[C(-1, -5, 0, 2, 10, 2, 'crystal'), C(-4, -1, 0, 8, 2, 2, 'crystal')])
+    elif el == 'storm':
+        for lr, sg in sides:
+            part('antler_' + lr, 'head', (2.5 * sg, -3, -2), (0.9, 0.35 * sg, 0), [C(-0.5, -0.5, 0, 1, 1, 6, 'horn')])
+            part('antler_%s_a' % lr, 'antler_' + lr, (0, 0, 6), (-0.5, 0, 0), [C(-0.5, -0.5, 0, 1, 1, 5, 'horn')])
+            part('antler_%s_b' % lr, 'antler_' + lr, (0, 0, 3), (0.2, 0.7 * sg, 0), [C(-0.5, -0.5, 0, 1, 1, 5, 'horn')])
+        part('bolt_a', 'tail_tip', (0, 0, 6), (0, 0.6, 0), [C(-0.5, -0.5, 0, 1, 1, 6, 'spike')])
+        part('bolt_b', 'bolt_a', (0, 0, 6), (0, -1.2, 0), [C(-0.5, -0.5, 0, 1, 1, 6, 'spike')])
+        for k, z in enumerate((-9, -3, 3, 9)):
+            part('spark_%d' % k, 'body', (0, -7, z), cubes=[C(-0.5, -11, -0.5, 1, 11, 1, 'spike')])
+    else:
+        for lr, sg in sides:
+            part('ear_fin_' + lr, 'head', (3.5 * sg, -1, -2), (0, -0.6 * sg, 0), [C(ox(sg, 6), -3, -0.5, 6, 5, 1, 'membrane', dil=(0, 0, -0.25))])
+        part('dorsal_fin', 'body', (0, -6, -6), cubes=[C(-0.5, -8, 0, 1, 8, 14, 'membrane', dil=(-0.25, 0, 0))])
+        part('tail_fin', 'tail4', (0, 0, 4), cubes=[C(-0.5, -6, 0, 1, 12, 8, 'membrane', dil=(-0.25, 0, 0))])
+    return P
+
+def pal(**kw):
+    d = dict(ASH_PAL); d.update(kw); return d
+ELPAL = {
+    'fire': pal(scale=(140, 34, 26), plate=(224, 140, 52), horn=(52, 38, 36), membrane=(176, 58, 26), bone=(66, 40, 36), claw=(28, 24, 26),
+                eye=(255, 236, 90), teeth=(240, 226, 200), spike=(60, 44, 40), ember=(255, 170, 40), f_a=(226, 66, 22), f_c=(255, 222, 90)),
+    'ice': pal(scale=(120, 168, 204), plate=(226, 240, 250), horn=(205, 232, 247), membrane=(96, 150, 200), bone=(110, 150, 180), claw=(60, 80, 100),
+               eye=(130, 245, 255), teeth=(245, 250, 255), spike=(190, 230, 250), ember=(230, 250, 255), crystal=(170, 225, 250)),
+    'storm': pal(scale=(64, 72, 122), plate=(196, 198, 232), horn=(232, 214, 96), membrane=(52, 58, 108), bone=(60, 66, 100), claw=(36, 36, 60),
+                 eye=(255, 250, 120), teeth=(240, 240, 230), spike=(250, 226, 84), ember=(255, 244, 120)),
+    'tide': pal(scale=(34, 116, 146), plate=(188, 226, 210), horn=(232, 226, 200), membrane=(44, 156, 176), bone=(50, 110, 130), claw=(30, 60, 70),
+                eye=(190, 255, 230), teeth=(240, 248, 240), spike=(58, 168, 190), ember=(150, 240, 230)),
+}
+CAP = {'fire': 'Fire', 'ice': 'Ice', 'storm': 'Storm', 'tide': 'Tide'}
+
+def scale_icon(name, c):
+    img = Image.new('RGBA', (16, 16), (0, 0, 0, 0)); px = img.load()
+    for y in range(16):
+        for x in range(16):
+            d = abs(x - 7.5) / 5.5 + abs(y - 7.5) / 7
+            if d <= 1: px[x, y] = (shade(c, 0.6) if d > 0.8 else c if d > 0.45 else shade(c, 1.35)) + (255,)
+    img.save(os.path.join(TEX, 'item', name + '.png'))
+
+def eggblock(name, base, spot):
+    os.makedirs(TEX + '/block', exist_ok=True)
+    img = Image.new('RGBA', (16, 16)); px = img.load(); rng = random.Random(name)
+    for y in range(16):
+        for x in range(16):
+            c = shade(base, 0.85 + 0.3 * ((x * 7 + y * 3) % 11) / 11 + rng.uniform(-0.05, 0.05))
+            if (x * 5 + y * 9) % 13 == 0 or rng.random() < 0.07: c = spot
+            px[x, y] = c + (255,)
+    img.save(os.path.join(TEX, 'block', name + '.png'))
+
 # =================================================================== ICONOS
 def egg(name, c1, c2):
     img = Image.new('RGBA', (16, 16), (0, 0, 0, 0)); px = img.load(); rng = random.Random(name)
@@ -458,3 +535,8 @@ if __name__ == '__main__':
     build('MedusaModel', 'MedusaRenderState', mp, MED_PAL, 'medusa', med_anim())
     egg('ashwing_spawn_egg', (62, 56, 60), (236, 96, 26)); egg('phoenix_spawn_egg', (220, 70, 30), (255, 200, 60))
     egg('medusa_spawn_egg', (52, 122, 64), (96, 44, 118)); emberscale()
+    for el in ('fire', 'ice', 'storm', 'tide'):
+        build(CAP[el] + 'DragonModel', 'AshwingRenderState', elemental(el), ELPAL[el], el + '_dragon', ASH_ANIM)
+        pl = ELPAL[el]
+        egg(el + '_dragon_spawn_egg', pl['scale'], pl['ember']); scale_icon(el + '_dragon_scale', pl['scale'])
+        eggblock(el + '_dragon_egg', pl['scale'], pl['ember'])
