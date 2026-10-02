@@ -25,6 +25,14 @@ public class AshwingEntity extends TameableEntity {
         super(type, world);
     }
 
+    public final AnimTracker anim = new AnimTracker();
+
+    @Override
+    public void tick() {
+        super.tick();
+        this.anim.update(this);
+    }
+
     public static DefaultAttributeContainer.Builder createAttributes() {
         return MobEntity.createMobAttributes()
                 .add(EntityAttributes.MAX_HEALTH, 60.0)

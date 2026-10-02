@@ -4,7 +4,6 @@ import io.emberwyrms.Emberwyrms;
 import io.emberwyrms.entity.PhoenixEntity;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.entity.MobEntityRenderer;
-import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 import net.minecraft.util.Identifier;
 
 public class PhoenixRenderer extends MobEntityRenderer<PhoenixEntity, PhoenixRenderState, PhoenixModel> {
@@ -22,6 +21,8 @@ public class PhoenixRenderer extends MobEntityRenderer<PhoenixEntity, PhoenixRen
     @Override
     public void updateRenderState(PhoenixEntity entity, PhoenixRenderState state, float tickDelta) {
         super.updateRenderState(entity, state, tickDelta);
+        state.walkSpeed = entity.anim.speed;
+        state.walkPhase = entity.anim.phaseAt(tickDelta);
         state.flying = !entity.isOnGround();
     }
 

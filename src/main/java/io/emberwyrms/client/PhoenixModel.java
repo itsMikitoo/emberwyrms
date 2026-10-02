@@ -193,12 +193,11 @@ public class PhoenixModel extends EntityModel<PhoenixRenderState> {
     public void setAngles(PhoenixRenderState s) {
         super.setAngles(s);
         float t = s.age;
-        float f = s.limbFrequency * 0.6662f;
-        float amp = Math.min(1f, s.limbAmplitudeMultiplier * 1.5f);
+        float f = s.walkPhase * 0.6662f;
+        float amp = Math.min(1f, s.walkSpeed * 1.5f);
         float yawLook = s.relativeHeadYaw * 0.0174533f;
         float pitchLook = s.pitch * 0.0174533f;
 
-        this.body.pivotY = 16f + sin(t * 0.1f) * 0.3f;
         this.neck.pitch = -0.5f;
         this.head.pitch = 0.5f + pitchLook * 0.5f;
         this.head.yaw = yawLook * 0.6f;

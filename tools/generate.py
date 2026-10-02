@@ -170,7 +170,8 @@ def build(cls, state, parts, pal, tex, anim):
 def ashwing():
     P = []
     def part(*a, **k): P.append(Part(*a, **k))
-    part('body', None, (0, 10, 0), cubes=[
+    part('frame', None, (0, 24, 0))
+    part('body', 'frame', (0, -14, 0), cubes=[
         C(-6, -5, -11, 12, 11, 22, 'scale', {'bottom': 'plate'}),
         C(-5.5, -4, -14, 11, 10, 3, 'scale'),
         C(-5, -7, -9, 10, 2, 8, 'scale')] +
@@ -220,16 +221,16 @@ ASH_ANIM = '''    @Override
     public void setAngles(AshwingRenderState s) {
         super.setAngles(s);
         float t = s.age;
-        float amp = Math.min(1f, s.limbAmplitudeMultiplier * 1.6f);
-        float f = s.limbFrequency * 0.6662f;
+        float amp = Math.min(1f, s.walkSpeed * 1.6f);
+        float f = s.walkPhase * 0.6662f;
         float breathe = sin(t * 0.09f);
         float yawLook = s.relativeHeadYaw * 0.0174533f;
         float pitchLook = s.pitch * 0.0174533f;
         boolean sit = s.sitting;
 
-        this.body.pivotY = (sit ? 14f : 10f) + breathe * 0.25f;
-        this.body.pitch = sit ? -0.35f : 0f;
-        this.neck1.pitch = -0.55f + (sit ? 0.15f : 0f);
+        this.frame.pitch = sit ? -0.45f : 0f;
+        this.body.pitch = breathe * 0.01f;
+        this.neck1.pitch = -0.55f + (sit ? 0.35f : 0f);
         this.neck2.pitch = 0.25f;
         this.neck1.yaw = yawLook * 0.3f;
         this.neck2.yaw = yawLook * 0.3f;
@@ -244,7 +245,7 @@ ASH_ANIM = '''    @Override
         this.tail3.yaw = sin(t * 0.07f - 1.2f) * 0.2f;
         this.tail4.yaw = sin(t * 0.07f - 1.8f) * 0.24f;
         this.tailTip.yaw = sin(t * 0.07f - 2.4f) * 0.28f;
-        this.tail1.pitch = sit ? 0.5f : 0f;
+        this.tail1.pitch = sit ? 0.45f : 0f;
 
         float fold = 0.88f;
         float flutter = sin(t * 0.1f) * 0.025f;
@@ -260,12 +261,9 @@ ASH_ANIM = '''    @Override
         }
 
         if (sit) {
-            this.legFl.pivotY = 0f; this.legFr.pivotY = 0f;
-            this.legBl.pivotY = -2f; this.legBr.pivotY = -2f;
-            this.legFl.pitch = 0.1f; this.legFr.pitch = 0.1f;
-            this.legBl.pitch = -1.1f; this.legBr.pitch = -1.1f;
+            this.legFl.pitch = 0.5f; this.legFr.pitch = 0.5f;
+            this.legBl.pitch = -0.9f; this.legBr.pitch = -0.9f;
         } else {
-            this.legFl.pivotY = 4f; this.legFr.pivotY = 4f; this.legBl.pivotY = 4f; this.legBr.pivotY = 4f;
             float sw = cos(f) * 1.1f * amp;
             this.legFl.pitch = sw;  this.legBr.pitch = sw;
             this.legFr.pitch = -sw; this.legBl.pitch = -sw;
@@ -306,12 +304,11 @@ PHX_ANIM = '''    @Override
     public void setAngles(PhoenixRenderState s) {
         super.setAngles(s);
         float t = s.age;
-        float f = s.limbFrequency * 0.6662f;
-        float amp = Math.min(1f, s.limbAmplitudeMultiplier * 1.5f);
+        float f = s.walkPhase * 0.6662f;
+        float amp = Math.min(1f, s.walkSpeed * 1.5f);
         float yawLook = s.relativeHeadYaw * 0.0174533f;
         float pitchLook = s.pitch * 0.0174533f;
 
-        this.body.pivotY = 16f + sin(t * 0.1f) * 0.3f;
         this.neck.pitch = -0.5f;
         this.head.pitch = 0.5f + pitchLook * 0.5f;
         this.head.yaw = yawLook * 0.6f;
@@ -393,18 +390,17 @@ def med_anim():
     private static final float[] SNAKE_DZ = {%s};
 
     @Override
-    public void setAngles(LivingEntityRenderState s) {
+    public void setAngles(MedusaRenderState s) {
         super.setAngles(s);
         float t = s.age;
-        float f = s.limbFrequency * 0.6662f;
-        float amp = Math.min(1f, s.limbAmplitudeMultiplier * 1.6f);
+        float f = s.walkPhase * 0.6662f;
+        float amp = Math.min(1f, s.walkSpeed * 1.6f);
         float yawLook = s.relativeHeadYaw * 0.0174533f;
         float pitchLook = s.pitch * 0.0174533f;
 
         this.head.yaw = yawLook * 0.8f;
         this.head.pitch = pitchLook * 0.7f;
         this.torso.yaw = sin(t * 0.06f) * 0.05f + cos(f) * 0.15f * amp;
-        this.torso.pivotY = 16f + sin(t * 0.08f) * 0.3f;
 
         float sw = 0.1f + 0.25f * amp;
         float sp = t * 0.07f + f * 0.5f;
@@ -459,6 +455,6 @@ if __name__ == '__main__':
     build('AshwingModel', 'AshwingRenderState', ashwing(), ASH_PAL, 'ashwing', ASH_ANIM)
     build('PhoenixModel', 'PhoenixRenderState', phoenix(), PHX_PAL, 'phoenix', PHX_ANIM)
     mp = medusa()
-    build('MedusaModel', 'LivingEntityRenderState', mp, MED_PAL, 'medusa', med_anim())
+    build('MedusaModel', 'MedusaRenderState', mp, MED_PAL, 'medusa', med_anim())
     egg('ashwing_spawn_egg', (62, 56, 60), (236, 96, 26)); egg('phoenix_spawn_egg', (220, 70, 30), (255, 200, 60))
     egg('medusa_spawn_egg', (52, 122, 64), (96, 44, 118)); emberscale()

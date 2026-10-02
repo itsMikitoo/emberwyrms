@@ -4,10 +4,9 @@ import io.emberwyrms.Emberwyrms;
 import io.emberwyrms.entity.MedusaEntity;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.entity.MobEntityRenderer;
-import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 import net.minecraft.util.Identifier;
 
-public class MedusaRenderer extends MobEntityRenderer<MedusaEntity, LivingEntityRenderState, MedusaModel> {
+public class MedusaRenderer extends MobEntityRenderer<MedusaEntity, MedusaRenderState, MedusaModel> {
     private static final Identifier TEXTURE = Emberwyrms.id("textures/entity/medusa.png");
 
     public MedusaRenderer(EntityRendererFactory.Context ctx) {
@@ -15,18 +14,20 @@ public class MedusaRenderer extends MobEntityRenderer<MedusaEntity, LivingEntity
     }
 
     @Override
-    public LivingEntityRenderState createRenderState() {
-        return new LivingEntityRenderState();
+    public MedusaRenderState createRenderState() {
+        return new MedusaRenderState();
     }
 
     @Override
-    public void updateRenderState(MedusaEntity entity, LivingEntityRenderState state, float tickDelta) {
+    public void updateRenderState(MedusaEntity entity, MedusaRenderState state, float tickDelta) {
         super.updateRenderState(entity, state, tickDelta);
-        // sin estado extra
+        state.walkSpeed = entity.anim.speed;
+        state.walkPhase = entity.anim.phaseAt(tickDelta);
+
     }
 
     @Override
-    public Identifier getTexture(LivingEntityRenderState state) {
+    public Identifier getTexture(MedusaRenderState state) {
         return TEXTURE;
     }
 }

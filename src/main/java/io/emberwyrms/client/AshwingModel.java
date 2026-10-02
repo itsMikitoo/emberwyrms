@@ -11,6 +11,7 @@ import net.minecraft.client.render.entity.model.EntityModel;
 
 /** GENERADO por tools/generate.py. Edita el generador, no este archivo. */
 public class AshwingModel extends EntityModel<AshwingRenderState> {
+    private final ModelPart frame;
     private final ModelPart body;
     private final ModelPart neck1;
     private final ModelPart neck2;
@@ -52,7 +53,8 @@ public class AshwingModel extends EntityModel<AshwingRenderState> {
 
     public AshwingModel(ModelPart root) {
         super(root);
-        this.body = root.getChild("body");
+        this.frame = root.getChild("frame");
+        this.body = frame.getChild("body");
         this.neck1 = body.getChild("neck1");
         this.neck2 = neck1.getChild("neck2");
         this.head = neck2.getChild("head");
@@ -95,7 +97,9 @@ public class AshwingModel extends EntityModel<AshwingRenderState> {
     public static TexturedModelData getTexturedModelData() {
         ModelData data = new ModelData();
         ModelPartData root = data.getRoot();
-        ModelPartData body = root.addChild("body", ModelPartBuilder.create()
+        ModelPartData frame = root.addChild("frame", ModelPartBuilder.create(),
+                ModelTransform.of(0f, 24f, 0f, 0f, 0f, 0f));
+        ModelPartData body = frame.addChild("body", ModelPartBuilder.create()
                 .uv(0, 0).cuboid(-6f, -5f, -11f, 12f, 11f, 22f)
                 .uv(44, 47).cuboid(-5.5f, -4f, -14f, 11f, 10f, 3f)
                 .uv(90, 60).cuboid(-5f, -7f, -9f, 10f, 2f, 8f)
@@ -104,7 +108,7 @@ public class AshwingModel extends EntityModel<AshwingRenderState> {
                 .uv(102, 89).cuboid(-0.5f, -8f, -1f, 1f, 3f, 2f)
                 .uv(102, 89).cuboid(-0.5f, -8f, 3f, 1f, 3f, 2f)
                 .uv(102, 89).cuboid(-0.5f, -8f, 7f, 1f, 3f, 2f),
-                ModelTransform.of(0f, 10f, 0f, 0f, 0f, 0f));
+                ModelTransform.of(0f, -14f, 0f, 0f, 0f, 0f));
         ModelPartData neck1 = body.addChild("neck1", ModelPartBuilder.create()
                 .uv(30, 33).cuboid(-3f, -3f, -7f, 6f, 6f, 8f)
                 .uv(32, 95).cuboid(-0.5f, -5f, -6f, 1f, 2f, 2f)
@@ -271,16 +275,16 @@ public class AshwingModel extends EntityModel<AshwingRenderState> {
     public void setAngles(AshwingRenderState s) {
         super.setAngles(s);
         float t = s.age;
-        float amp = Math.min(1f, s.limbAmplitudeMultiplier * 1.6f);
-        float f = s.limbFrequency * 0.6662f;
+        float amp = Math.min(1f, s.walkSpeed * 1.6f);
+        float f = s.walkPhase * 0.6662f;
         float breathe = sin(t * 0.09f);
         float yawLook = s.relativeHeadYaw * 0.0174533f;
         float pitchLook = s.pitch * 0.0174533f;
         boolean sit = s.sitting;
 
-        this.body.pivotY = (sit ? 14f : 10f) + breathe * 0.25f;
-        this.body.pitch = sit ? -0.35f : 0f;
-        this.neck1.pitch = -0.55f + (sit ? 0.15f : 0f);
+        this.frame.pitch = sit ? -0.45f : 0f;
+        this.body.pitch = breathe * 0.01f;
+        this.neck1.pitch = -0.55f + (sit ? 0.35f : 0f);
         this.neck2.pitch = 0.25f;
         this.neck1.yaw = yawLook * 0.3f;
         this.neck2.yaw = yawLook * 0.3f;
@@ -295,7 +299,7 @@ public class AshwingModel extends EntityModel<AshwingRenderState> {
         this.tail3.yaw = sin(t * 0.07f - 1.2f) * 0.2f;
         this.tail4.yaw = sin(t * 0.07f - 1.8f) * 0.24f;
         this.tailTip.yaw = sin(t * 0.07f - 2.4f) * 0.28f;
-        this.tail1.pitch = sit ? 0.5f : 0f;
+        this.tail1.pitch = sit ? 0.45f : 0f;
 
         float fold = 0.88f;
         float flutter = sin(t * 0.1f) * 0.025f;
@@ -311,12 +315,9 @@ public class AshwingModel extends EntityModel<AshwingRenderState> {
         }
 
         if (sit) {
-            this.legFl.pivotY = 0f; this.legFr.pivotY = 0f;
-            this.legBl.pivotY = -2f; this.legBr.pivotY = -2f;
-            this.legFl.pitch = 0.1f; this.legFr.pitch = 0.1f;
-            this.legBl.pitch = -1.1f; this.legBr.pitch = -1.1f;
+            this.legFl.pitch = 0.5f; this.legFr.pitch = 0.5f;
+            this.legBl.pitch = -0.9f; this.legBr.pitch = -0.9f;
         } else {
-            this.legFl.pivotY = 4f; this.legFr.pivotY = 4f; this.legBl.pivotY = 4f; this.legBr.pivotY = 4f;
             float sw = cos(f) * 1.1f * amp;
             this.legFl.pitch = sw;  this.legBr.pitch = sw;
             this.legFr.pitch = -sw; this.legBl.pitch = -sw;

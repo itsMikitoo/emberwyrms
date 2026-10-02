@@ -28,6 +28,14 @@ public class PhoenixEntity extends TameableEntity {
         this.moveControl = new FlightMoveControl(this, 10, false);
     }
 
+    public final AnimTracker anim = new AnimTracker();
+
+    @Override
+    public void tick() {
+        super.tick();
+        this.anim.update(this);
+    }
+
     public static DefaultAttributeContainer.Builder createAttributes() {
         return MobEntity.createMobAttributes()
                 .add(EntityAttributes.MAX_HEALTH, 24.0)

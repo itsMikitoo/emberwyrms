@@ -20,6 +20,8 @@ public class MedusaEntity extends HostileEntity {
         super(type, world);
     }
 
+    public final AnimTracker anim = new AnimTracker();
+
     public static DefaultAttributeContainer.Builder createAttributes() {
         return HostileEntity.createHostileAttributes()
                 .add(EntityAttributes.MAX_HEALTH, 40.0)
@@ -43,6 +45,7 @@ public class MedusaEntity extends HostileEntity {
     @Override
     public void tick() {
         super.tick();
+        this.anim.update(this);
         if (!this.getEntityWorld().isClient() && this.age % 20 == 0 && this.getTarget() instanceof PlayerEntity p) {
             if (this.distanceTo(p) < 14.0f && this.canSee(p)) {
                 Vec3d look = p.getRotationVec(1.0f).normalize();

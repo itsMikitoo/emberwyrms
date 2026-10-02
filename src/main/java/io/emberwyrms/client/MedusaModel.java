@@ -10,7 +10,7 @@ import net.minecraft.client.model.TexturedModelData;
 import net.minecraft.client.render.entity.model.EntityModel;
 
 /** GENERADO por tools/generate.py. Edita el generador, no este archivo. */
-public class MedusaModel extends EntityModel<LivingEntityRenderState> {
+public class MedusaModel extends EntityModel<MedusaRenderState> {
     private final ModelPart coil1;
     private final ModelPart coil2;
     private final ModelPart coil3;
@@ -212,18 +212,17 @@ public class MedusaModel extends EntityModel<LivingEntityRenderState> {
     private static final float[] SNAKE_DZ = {0f, 0.7071f, 1f, 0.7071f, 0f, -0.7071f, -1f, -0.7071f};
 
     @Override
-    public void setAngles(LivingEntityRenderState s) {
+    public void setAngles(MedusaRenderState s) {
         super.setAngles(s);
         float t = s.age;
-        float f = s.limbFrequency * 0.6662f;
-        float amp = Math.min(1f, s.limbAmplitudeMultiplier * 1.6f);
+        float f = s.walkPhase * 0.6662f;
+        float amp = Math.min(1f, s.walkSpeed * 1.6f);
         float yawLook = s.relativeHeadYaw * 0.0174533f;
         float pitchLook = s.pitch * 0.0174533f;
 
         this.head.yaw = yawLook * 0.8f;
         this.head.pitch = pitchLook * 0.7f;
         this.torso.yaw = sin(t * 0.06f) * 0.05f + cos(f) * 0.15f * amp;
-        this.torso.pivotY = 16f + sin(t * 0.08f) * 0.3f;
 
         float sw = 0.1f + 0.25f * amp;
         float sp = t * 0.07f + f * 0.5f;

@@ -4,7 +4,6 @@ import io.emberwyrms.Emberwyrms;
 import io.emberwyrms.entity.AshwingEntity;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.entity.MobEntityRenderer;
-import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 import net.minecraft.util.Identifier;
 
 public class AshwingRenderer extends MobEntityRenderer<AshwingEntity, AshwingRenderState, AshwingModel> {
@@ -22,6 +21,8 @@ public class AshwingRenderer extends MobEntityRenderer<AshwingEntity, AshwingRen
     @Override
     public void updateRenderState(AshwingEntity entity, AshwingRenderState state, float tickDelta) {
         super.updateRenderState(entity, state, tickDelta);
+        state.walkSpeed = entity.anim.speed;
+        state.walkPhase = entity.anim.phaseAt(tickDelta);
         state.sitting = entity.isSitting();
     }
 
