@@ -69,9 +69,15 @@ def main():
     entries = []
     for name, (tpl, sky, fog, water, wfog, grass, foliage, top, filler, temp, hum) in BIOMES.items():
         b = templates[name]
-        got = [set_key(b, {'sky_color'}, sky), set_key(b, {'fog_color'}, fog), set_key(b, {'water_color'}, water),
-               set_key(b, {'water_fog_color'}, wfog), set_key(b, {'grass_color'}, grass), set_key(b, {'foliage_color'}, foliage)]
-        print('biome %-15s colores cambiados (sky,fog,water,wfog,grass,foliage): %s' % (name, got))
+        wanted = (('sky_color', sky), ('fog_color', fog), ('water_color', water), ('water_fog_color', wfog), ('grass_color', grass), ('foliage_color', foliage))
+        got = []
+        for key, val in wanted:
+            n = set_key(b, {key}, val)
+            if n == 0 and isinstance(b.get('effects'), dict):      # el bioma plantilla no la traia: se añade
+                b['effects'][key] = val; n = -1
+            got.append(n)
+        print('biome %-15s (sky,fog,water,wfog,grass,foliage; -1 = anadido): %s | claves: %s | effects: %s' % (
+            name, got, sorted(b.keys()), sorted(b['effects'].keys()) if isinstance(b.get('effects'), dict) else None))
         json.dump(b, open(D + 'worldgen/biome/%s.json' % name, 'w'), indent=1)
         rules.append(surface_rule(name, top, filler))
         entries.append({'biome': 'emberwyrms:' + name, 'parameters': {'temperature': list(temp), 'humidity': list(hum),
