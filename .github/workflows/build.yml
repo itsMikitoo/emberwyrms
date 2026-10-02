@@ -16,6 +16,12 @@ jobs:
           pip install pillow
           python3 tools/generate.py
           python3 tools/gen_assets.py
+                - name: Generar modelos, texturas y recursos
+        run: |
+          pip install pillow
+          python3 tools/generate.py
+          python3 tools/gen_assets.py
+          python3 tools/gen_worldgen.py
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: current
