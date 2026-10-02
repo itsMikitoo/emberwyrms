@@ -52,7 +52,8 @@ public class DragonEggBlock extends Block {
         if (dragon == null) return;
         world.removeBlock(pos, false);
         dragon.refreshPositionAndAngles(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, random.nextFloat() * 360f, 0f);
-        dragon.setBreedingAge(-DragonEntity.GROW_TICKS);
+        dragon.addCommandTag(DragonEntity.INIT_TAG);
+        dragon.setAgeDays(0f);
         PlayerEntity near = world.getClosestPlayer(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 8.0, false);
         if (near != null) dragon.setOwner(near);
         world.spawnEntity(dragon);

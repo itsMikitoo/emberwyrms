@@ -52,7 +52,7 @@ public class ModEntities {
     private static EntityType<DragonEntity> dragon(String name, DragonElement element) {
         EntityType.Builder<DragonEntity> b = EntityType.Builder.<DragonEntity>create(
                 (type, world) -> new DragonEntity(type, world, element), SpawnGroup.CREATURE)
-                .dimensions(2.6f, 3.0f).passengerAttachments(2.3f).maxTrackingRange(10);
+                .dimensions(2.8f, 3.4f).passengerAttachments(2.5f).maxTrackingRange(10);
         if (element == DragonElement.FIRE) b = b.makeFireImmune();
         return build(name, b);
     }

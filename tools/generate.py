@@ -64,28 +64,41 @@ def vnoise(x, y, sc, seed):
 
 SIDES = ('front', 'back', 'left', 'right')
 
+def voronoi(x, y, size, seed):
+    gx, gy = x / size, y / size
+    ix, iy = math.floor(gx), math.floor(gy)
+    d1 = d2 = 9.0; best = (0, 0, 0.0, 0.0)
+    for dy in (-1, 0, 1):
+        for dx in (-1, 0, 1):
+            cx, cy = ix + dx, iy + dy
+            px_ = cx + 0.15 + 0.7 * _h(cx, cy, seed * 7 + 1); py_ = cy + 0.15 + 0.7 * _h(cx, cy, seed * 7 + 2)
+            d = math.hypot(gx - px_, gy - py_)
+            if d < d1: d2 = d1; d1 = d; best = (cx, cy, gx - px_, gy - py_)
+            elif d < d2: d2 = d
+    return d1, d2, (best[0], best[1]), best[2], best[3]
+
 def pixel(mat, i, j, w, h, face, pal, rng, seed):
     base = pal.get(mat, (0, 0, 0)); n = rng.uniform(-0.05, 0.05)
     if mat == 'scale':
         belly = pal.get('belly', base)
+        size = pal.get('scale_size', 3.3)
         t = j / max(1, h - 1)
-        if face in SIDES: c = mix(base, belly, (t ** 1.6) * 0.9)
-        elif face == 'top': c = shade(base, 0.88)
+        if face in SIDES: c = mix(base, belly, (t ** 1.7) * 0.92)
+        elif face == 'top': c = shade(base, 0.86)
         else: c = belly
-        c = shade(c, 0.9 + 0.2 * vnoise(i + seed, j, 5, seed))
-        row = j // 3; xx = i + (row % 2) * 2
-        lx, ly = xx % 4, j % 3
-        cell = ((xx // 4) * 31 + row * 17 + seed) % 101
-        c = shade(c, 0.92 + (cell % 9) * 0.02 + n)
-        if lx == 3 or ly == 2: c = shade(c, 0.76)
-        elif lx == 0 and ly == 0: c = shade(c, 1.18)
-        elif ly == 0: c = shade(c, 1.08)
-        if 'ember' in pal and cell % 31 == 0 and (lx == 3 or ly == 2): c = mix(c, pal['ember'], 0.55)
+        c = shade(c, 0.84 + 0.3 * vnoise(i + seed * 3, j, 9, seed))
+        d1, d2, cid, ox_, oy_ = voronoi(i + 0.5 + seed * 5.3, j + 0.5 + seed * 2.1, size, seed)
+        groove = min(1.0, max(0.0, (d2 - d1) / 0.30))
+        dome = max(0.0, 1.0 - d1 / 0.8)
+        light = min(1.3, max(0.72, 1.0 + 0.6 * (-(ox_ + oy_)) * dome))
+        cellv = 0.88 + 0.24 * _h(cid[0], cid[1], seed + 5)
+        c = shade(c, cellv * (0.42 + 0.58 * groove) * light + n)
+        if 'ember' in pal and groove < 0.5 and _h(cid[0], cid[1], seed + 11) > 0.93: c = mix(c, pal['ember'], 0.6)
         style, mk = pal.get('mark_style'), pal.get('mark')
         if style == 'cracks' and mk and abs(vnoise(i, j, 6, seed + 3) - 0.5) < 0.04: c = mix(c, mk, 0.92)
         if style and face in SIDES and mk:
             if style == 'stripe':
-                if ((i + int(3 * vnoise(j, 3, 6, seed))) % 9) in (0, 1) and j < h * 0.75: c = mix(c, mk, 0.55)
+                if ((i + int(3 * vnoise(j, 3, 6, seed))) % 9) in (0, 1) and j < h * 0.75: c = mix(c, mk, 0.5)
             elif style == 'streak':
                 if (i + 2 * j + seed) % 13 == 0 and vnoise(i, j, 5, seed + 9) > 0.35: c = mix(c, mk, 0.85)
             elif style == 'frost':
@@ -99,14 +112,24 @@ def pixel(mat, i, j, w, h, face, pal, rng, seed):
         elif i % 7 == 0: c = shade(c, 0.93)
         return c
     if mat == 'horn':
-        t = j / max(1, h - 1); c = mix(base, shade(base, 0.5), t * 0.85)
-        return shade(c, 0.88) if i % 3 == 0 else c
+        t = j / max(1, h - 1)
+        c = mix(base, shade(base, 0.42), (t ** 1.3) * 0.9)
+        ridge = 0.78 + 0.44 * (0.5 + 0.5 * math.sin(i * 1.9 + vnoise(i, j, 3, seed) * 4))
+        c = shade(c, ridge * (0.92 + 0.16 * vnoise(i, j, 4, seed)))
+        return shade(c, 0.75) if j % 5 == 0 else c
     if mat == 'membrane':
-        c = shade(base, 0.88 + 0.3 * vnoise(i, j, 5, seed) + n)
-        if i % 6 == 0 or j % 7 == 0: c = shade(c, 0.66)
-        if 'ember' in pal and j % 5 == 0: c = mix(c, pal['ember'], 0.12)
+        c = shade(base, 0.74 + 0.5 * vnoise(i, j, 7, seed) + n)
+        if abs(vnoise(i, j, 4, seed + 2) - 0.5) < 0.05: c = shade(c, 0.5)
+        if abs(vnoise(i * 0.4, j, 9, seed + 5) - 0.5) < 0.03: c = shade(c, 0.6)
+        if 'ember' in pal and vnoise(i, j, 5, seed + 8) > 0.8: c = mix(c, pal['ember'], 0.14)
         return c
-    if mat in ('bone', 'claw', 'teeth', 'beak', 'leg', 'gold', 'skin'):
+    if mat == 'teeth':
+        t = j / max(1, h - 1)
+        return mix(shade(base, 0.62), shade(base, 1.08), 1 - t) if h > 1 else base
+    if mat == 'claw':
+        t = j / max(1, h - 1)
+        return shade(base, 1.35 - 0.8 * t + n) if h > 1 else shade(base, 1 + n)
+    if mat in ('bone', 'beak', 'leg', 'gold', 'skin'):
         c = shade(base, 1 + n)
         return shade(c, 0.85) if (mat == 'gold' and (i + j) % 4 == 0) else c
     if mat == 'spike':
@@ -149,7 +172,7 @@ def pixel(mat, i, j, w, h, face, pal, rng, seed):
         return c
     return (255, 0, 255)
 
-def paint(parts, size, pos, pal, name):
+def paint(parts, size, pos, pal, name, sub='entity'):
     img = Image.new('RGBA', (size, size), (0, 0, 0, 0)); px = img.load()
     for k, (x0, y0) in pos.items():
         (w, h, d), mat, f, _ = k; fo = dict(f)
@@ -166,7 +189,7 @@ def paint(parts, size, pos, pal, name):
                         c = shade(c, {'top': 1.12, 'bottom': 0.78, 'right': 0.92, 'left': 0.92, 'front': 1.0, 'back': 0.95}[face])
                         if fw >= 4 and fh >= 4 and (i in (0, fw - 1) or j in (0, fh - 1)): c = shade(c, 0.9)
                     px[fx + i, fy + j] = c + (255,)
-    img.save(os.path.join(TEX, 'entity', name + '.png'))
+    img.save(os.path.join(TEX, sub, name + '.png'))
 
 # ------------------------------------------------------------------ java
 def emit(cls, state, layer_hint, parts, size, pos, anim):
@@ -214,15 +237,16 @@ def build(cls, state, parts, pal, tex, anim):
     return parts, size, pos
 
 # =================================================================== DRAGON V2 (realista)
-HIND_L, HIND_A = (6.0, 7.0, 4.5), (-0.65, 0.55, -0.15)
-FORE_L, FORE_A = (5.5, 5.5, 3.5), (0.40, -0.45, 0.10)
-HIP_REL_Y = 4.5
+HIND_L, HIND_A = (6.5, 7.5, 5.0), (-0.65, 0.55, -0.15)
+FORE_L, FORE_A = (6.0, 6.0, 4.0), (0.40, -0.45, 0.10)
+HIP_REL_Y = 5.5
 NECK_REL = (-0.45, -0.25, -0.05, 0.1, 0.2, 0.2)
 FING_ANG = (0.30, 0.75, 1.15, 1.5)
 
 def chain_drop(Ls, As, foot=1.0): return sum(L * math.cos(a) for L, a in zip(Ls, As)) + foot
 
 def ashwing():
+    """Dragon estilo Ice and Fire: torso profundo, cuello grueso en S, cabeza grande y cuadrada, alas enormes."""
     P = []
     def part(*a, **k): P.append(Part(*a, **k))
     sides = (('l', 1), ('r', -1))
@@ -230,71 +254,71 @@ def ashwing():
     fore_hip = (24 - chain_drop(FORE_L, FORE_A)) - body_abs
     part('frame', None, (0, 24, 0))
     spikes = []
-    for z, h in ((-11, 4), (-7, 3), (-3, 3), (2, 3), (6, 3), (11, 4)):
-        top = 7.5 if z < -4 else 6.5
-        spikes.append(C(-1, -top - h, z, 2, h, 2, 'spike'))
+    for z, h in ((-12, 5), (-8, 4), (-4, 4), (1, 4), (5, 4), (10, 5)):
+        top = 8.5 if z < -4 else 7.5
+        spikes.append(C(-1.5, -top - h, z, 3, h, 3, 'spike'))
     part('body', 'frame', (0, body_abs - 24, 0), cubes=[
-        C(-7, -7.5, -14, 14, 15, 10, 'scale', {'bottom': 'plate'}),
-        C(-6, -6.5, -4, 12, 13, 8, 'scale', {'bottom': 'plate'}),
-        C(-6.5, -6.5, 4, 13, 13, 9, 'scale', {'bottom': 'plate'})] + spikes)
-    nw = (10, 9, 8, 7, 6, 5); prev = 'body'
+        C(-8, -8.5, -14, 16, 17, 10, 'scale', {'bottom': 'plate'}),
+        C(-6.5, -7, -4, 13, 14, 8, 'scale', {'bottom': 'plate'}),
+        C(-7.5, -7.5, 4, 15, 15, 9, 'scale', {'bottom': 'plate'})] + spikes)
+    nw = (12, 11, 10, 9, 8, 7); prev = 'body'
     for k in range(6):
         w = nw[k]
-        part('neck%d' % (k + 1), prev, (0, -5.5, -12) if k == 0 else (0, 0, -6), (NECK_REL[k], 0, 0), [
-            C(-w / 2, -w / 2, -6, w, w, 6, 'scale', {'bottom': 'plate'}), C(-1, -w / 2 - 2, -5, 2, 2, 3, 'spike')])
+        part('neck%d' % (k + 1), prev, (0, -6.5, -12) if k == 0 else (0, 0, -7), (NECK_REL[k], 0, 0), [
+            C(-w / 2, -w / 2, -7, w, w, 7, 'scale', {'bottom': 'plate'}), C(-1.5, -w / 2 - 3, -6, 3, 3, 3, 'spike')])
         prev = 'neck%d' % (k + 1)
-    teeth = [C(x, 3, z, 1, 2, 1, 'teeth') for x in (-3, 2) for z in (-13, -11, -9)] + \
-            [C(x, 2.5, z, 1, 2, 1, 'teeth') for x in (-2.5, 1.5) for z in (-18, -16)] + \
-            [C(-2.5, 2.5, -19, 1, 3, 1, 'teeth'), C(1.5, 2.5, -19, 1, 3, 1, 'teeth')]
-    part('head', 'neck6', (0, 0, -6), (0.4, 0, 0), [
-        C(-4.5, -3.5, -8, 9, 7, 8, 'scale'), C(-5, -4.5, -6, 10, 1, 4, 'scale'),
-        C(-3, -2, -14, 6, 5, 6, 'scale', {'bottom': 'mouth'}), C(-2.5, -1.5, -19, 5, 4, 5, 'scale', {'bottom': 'mouth'}),
-        C(-2, -2, -19.5, 1, 1, 1, 'claw'), C(1, -2, -19.5, 1, 1, 1, 'claw'),
-        C(4.4, -2.5, -6, 1, 2, 2, 'eye'), C(-5.4, -2.5, -6, 1, 2, 2, 'eye'),
-        C(4.5, -1, -3, 1, 3, 4, 'spike'), C(-5.5, -1, -3, 1, 3, 4, 'spike'),
-        C(-0.5, -6, -6, 1, 2, 5, 'spike')] + teeth)
-    part('jaw', 'head', (0, 2.5, -0.5), cubes=[C(-3, 0, -17, 6, 2, 16, 'scale', {'top': 'mouth'}),
-        *[C(x, -2, z, 1, 2, 1, 'teeth') for x in (-2.5, 1.5) for z in (-16, -14, -12, -10)],
-        C(-0.5, 2, -16, 1, 2, 1, 'spike')])
+    teeth = [C(x, 3.5, z, 1, 2, 1, 'teeth') for x in (-3.5, 2.5) for z in (-15, -13, -11)] + \
+            [C(x, 3, z, 1, 2, 1, 'teeth') for x in (-3, 2) for z in (-21, -19, -17)] + \
+            [C(-3, 3, -22, 1, 3, 1, 'teeth'), C(2, 3, -22, 1, 3, 1, 'teeth')]
+    part('head', 'neck6', (0, 0, -7), (0.4, 0, 0), [
+        C(-5.5, -4.5, -9, 11, 9, 9, 'scale'), C(-6, -5.5, -7, 12, 1, 4, 'scale'),
+        C(-3.5, -2.5, -16, 7, 6, 7, 'scale', {'bottom': 'mouth'}), C(-3, -2, -22, 6, 5, 6, 'scale', {'bottom': 'mouth'}),
+        C(-2.5, -2.5, -22.5, 1, 1, 1, 'claw'), C(1.5, -2.5, -22.5, 1, 1, 1, 'claw'),
+        C(5.4, -3, -7, 1, 2, 2, 'eye'), C(-6.4, -3, -7, 1, 2, 2, 'eye'),
+        C(5.5, -1, -4, 1, 4, 5, 'spike'), C(-6.5, -1, -4, 1, 4, 5, 'spike'),
+        C(-1, -7, -7, 2, 2, 6, 'spike')] + teeth)
+    part('jaw', 'head', (0, 3.5, -0.5), cubes=[C(-3.5, 0, -20, 7, 3, 19, 'scale', {'top': 'mouth'}),
+        *[C(x, -2, z, 1, 2, 1, 'teeth') for x in (-3, 2) for z in (-19, -17, -15, -13, -11)],
+        C(-1, 3, -19, 2, 2, 2, 'spike')])
     for lr, sg in sides:
-        part('horn_' + lr, 'head', (3.5 * sg, -3.5, -1), (0.2, 0.28 * sg, 0), [C(-1.5, -1.5, 0, 3, 3, 7, 'horn')])
-        part('horn_%s_2' % lr, 'horn_' + lr, (0, 0, 7), (0.1, 0.12 * sg, 0), [C(-1, -1, 0, 2, 2, 7, 'horn')])
-        part('horn_%s_3' % lr, 'horn_%s_2' % lr, (0, 0, 7), (0.2, 0.05 * sg, 0), [C(-0.5, -0.5, 0, 1, 1, 6, 'horn')])
-        part('brow_' + lr, 'head', (4 * sg, -4.5, -5), (0.25, -0.35 * sg, 0), [C(-1, -1, -5, 2, 2, 5, 'horn')])
-    tw = (10, 9, 8, 7, 6, 5, 4, 3, 2); th = (10, 8, 7, 6, 5, 4, 3, 3, 2); prev = 'body'
+        part('horn_' + lr, 'head', (4.5 * sg, -4.5, -1), (0.2, 0.3 * sg, 0), [C(-2, -2, 0, 4, 4, 8, 'horn')])
+        part('horn_%s_2' % lr, 'horn_' + lr, (0, 0, 8), (0.1, 0.12 * sg, 0), [C(-1.5, -1.5, 0, 3, 3, 8, 'horn')])
+        part('horn_%s_3' % lr, 'horn_%s_2' % lr, (0, 0, 8), (0.25, 0.05 * sg, 0), [C(-1, -1, 0, 2, 2, 7, 'horn')])
+        part('brow_' + lr, 'head', (5 * sg, -5.5, -6), (0.25, -0.35 * sg, 0), [C(-1.5, -1.5, -6, 3, 3, 6, 'horn')])
+    tw = (12, 10, 9, 8, 7, 6, 5, 4, 3); th = (12, 10, 8, 7, 6, 5, 4, 3, 3); prev = 'body'
     for k in range(9):
-        cubes = [C(-tw[k] / 2, -th[k] / 2, 0, tw[k], th[k], 6, 'scale', {'bottom': 'plate'})]
-        if k < 8: cubes.append(C(-1, -th[k] / 2 - 3, 1, 2, 3, 3, 'spike'))
-        part('tail%d' % (k + 1), prev, (0, -0.5, 12) if k == 0 else (0, 0, 6), cubes=cubes)
+        cubes = [C(-tw[k] / 2, -th[k] / 2, 0, tw[k], th[k], 7, 'scale', {'bottom': 'plate'})]
+        if k < 8: cubes.append(C(-1.5, -th[k] / 2 - 4, 1, 3, 4, 4, 'spike'))
+        part('tail%d' % (k + 1), prev, (0, -0.5, 13) if k == 0 else (0, 0, 7), cubes=cubes)
         prev = 'tail%d' % (k + 1)
-    part('tail_tip', 'tail9', (0, 0, 6), cubes=[C(-1, -5, 0, 2, 10, 6, 'horn'), C(-5, -1, 1, 10, 2, 4, 'horn')])
-    lens, gaps = (26, 23, 19, 14), (0.45, 0.4, 0.35, 0.3)
+    part('tail_tip', 'tail9', (0, 0, 7), cubes=[C(-1.5, -6, 0, 3, 12, 7, 'horn'), C(-6, -1.5, 1, 12, 3, 5, 'horn')])
+    lens, gaps = (30, 26, 22, 16), (0.45, 0.4, 0.35, 0.3)
     for lr, sg in sides:
         ox = lambda x0, ln: x0 if sg > 0 else -(x0 + ln)
-        part('wing_' + lr, 'body', (6.5 * sg, -6.5, -9), cubes=[C(ox(0, 6), -3, -3, 6, 6, 6, 'scale')])
-        part('arm_' + lr, 'wing_' + lr, (5 * sg, 0, 0), cubes=[C(ox(0, 10), -2.5, -2.5, 10, 5, 5, 'scale'),
-             C(ox(0, 10), -0.5, 3, 10, 1, 18, 'membrane', dil=(0, -0.25, 0))])
-        part('fore_' + lr, 'arm_' + lr, (10 * sg, 0, 0), cubes=[C(ox(0, 14), -2, -2, 14, 4, 4, 'scale'),
-             C(ox(0, 14), -0.5, 2, 14, 1, 12, 'membrane', dil=(0, -0.25, 0)), C(ox(0, 2), -1.5, -5, 2, 2, 5, 'claw')])
+        part('wing_' + lr, 'body', (7.5 * sg, -7.5, -9), cubes=[C(ox(0, 8), -4, -4, 8, 8, 8, 'scale')])
+        part('arm_' + lr, 'wing_' + lr, (6 * sg, 0, 0), cubes=[C(ox(0, 12), -3, -3, 12, 6, 6, 'scale'),
+             C(ox(0, 12), -0.5, 4, 12, 1, 20, 'membrane', dil=(0, -0.25, 0))])
+        part('fore_' + lr, 'arm_' + lr, (12 * sg, 0, 0), cubes=[C(ox(0, 16), -2.5, -2.5, 16, 5, 5, 'scale'),
+             C(ox(0, 16), -0.5, 3, 16, 1, 14, 'membrane', dil=(0, -0.25, 0)), C(ox(0, 3), -2, -6, 3, 3, 6, 'claw')])
         for k in range(4):
-            L = lens[k]; seg = L // 3; x0 = 0; bt = 2 if k < 2 else 1
+            L = lens[k]; seg = L // 3; x0 = 0; bt = 3 if k < 2 else 2
             cubes = [C(ox(0, L), -bt / 2, -bt / 2, L, bt, bt, 'bone')]
             for q in range(3):
                 ln = seg if q < 2 else L - 2 * seg
                 wd = max(2, int((x0 + ln / 2) * gaps[k]))
                 cubes.append(C(ox(x0, ln), -0.5, bt / 2, ln, 1, wd, 'membrane', dil=(0, -0.25, 0)))
                 x0 += ln
-            part('f%d_%s' % (k + 1, lr), 'fore_' + lr, (14 * sg, 0, 0), (0, -FING_ANG[k] * sg, 0), cubes)
-    for n, sx, z, hind in (('fl', 1, -10, False), ('fr', -1, -10, False), ('bl', 1, 8, True), ('br', -1, 8, True)):
+            part('f%d_%s' % (k + 1, lr), 'fore_' + lr, (16 * sg, 0, 0), (0, -FING_ANG[k] * sg, 0), cubes)
+    for n, sx, z, hind in (('fl', 1, -11, False), ('fr', -1, -11, False), ('bl', 1, 9, True), ('br', -1, 9, True)):
         Ls, As = (HIND_L, HIND_A) if hind else (FORE_L, FORE_A)
         hy = HIP_REL_Y if hind else fore_hip
-        up = [C(-3, -2, -3, 6, math.ceil(Ls[0]) + 3, 6, 'scale'), C(-4, -4, -4, 8, 8, 8, 'scale')] if hind else \
-             [C(-3, -2, -3, 6, math.ceil(Ls[0]) + 3, 6, 'scale'), C(-3.5, -3.5, -4, 7, 7, 8, 'scale')]
-        part('leg_' + n, 'body', ((6 if hind else 6.5) * sx, hy, z), (As[0], 0, 0), up)
-        part('shin_' + n, 'leg_' + n, (0, Ls[0], 0), (As[1] - As[0], 0, 0), [C(-2, -1, -2, 4, math.ceil(Ls[1]) + 1, 4, 'scale')])
-        part('meta_' + n, 'shin_' + n, (0, Ls[1], 0), (As[2] - As[1], 0, 0), [C(-1.5, -0.5, -1.5, 3, math.ceil(Ls[2]) + 1, 3, 'scale')])
-        part('foot_' + n, 'meta_' + n, (0, Ls[2], 0), (-As[2], 0, 0), [C(-2.5, -1, -7, 5, 2, 9, 'scale'),
-             C(-2.5, -0.5, -10, 1, 1, 3, 'claw'), C(-0.5, -0.5, -10, 1, 1, 3, 'claw'), C(1.5, -0.5, -10, 1, 1, 3, 'claw')])
+        up = [C(-4, -2.5, -4, 8, math.ceil(Ls[0]) + 3, 8, 'scale'), C(-5, -5, -5, 10, 10, 10, 'scale')] if hind else \
+             [C(-3.5, -2.5, -3.5, 7, math.ceil(Ls[0]) + 3, 7, 'scale'), C(-4.5, -4.5, -5, 9, 9, 10, 'scale')]
+        part('leg_' + n, 'body', ((7 if hind else 7.5) * sx, hy, z), (As[0], 0, 0), up)
+        part('shin_' + n, 'leg_' + n, (0, Ls[0], 0), (As[1] - As[0], 0, 0), [C(-2.5, -1, -2.5, 5, math.ceil(Ls[1]) + 1, 5, 'scale')])
+        part('meta_' + n, 'shin_' + n, (0, Ls[1], 0), (As[2] - As[1], 0, 0), [C(-2, -0.5, -2, 4, math.ceil(Ls[2]) + 1, 4, 'scale')])
+        part('foot_' + n, 'meta_' + n, (0, Ls[2], 0), (-As[2], 0, 0), [C(-3.5, -1, -9, 7, 2, 11, 'scale'),
+             C(-3.5, -0.5, -13, 2, 1, 4, 'claw'), C(-1, -0.5, -13, 2, 1, 4, 'claw'), C(1.5, -0.5, -13, 2, 1, 4, 'claw')])
     return P
 
 ASH_ANIM = r'''    private static final float HA1 = @HA1@, HR2 = @HR2@, HR3 = @HR3@, HF = @HF@;
@@ -548,30 +572,31 @@ def elemental(el):
     ox = lambda sg, L: 0 if sg > 0 else -L
     if el == 'fire':
         for lr, sg in sides:
-            part('fbrow_' + lr, 'head', (3.5 * sg, -5, -6), (0.15, -0.35 * sg, 0), [C(-0.5, -0.5, -6, 1, 1, 6, 'horn')])
-        part('tail_flame', 'tail_tip', (0, 0, 6), cubes=[C(-0.5, -3, 0, 1, 6, 6, 'flame'), C(-2.5, -0.5, 0, 5, 1, 4, 'flame')])
+            part('fbrow_' + lr, 'head', (4.5 * sg, -6, -6), (0.15, -0.35 * sg, 0), [C(-1, -1, -7, 2, 2, 7, 'horn')])
+        part('tail_flame', 'tail_tip', (0, 0, 7), cubes=[C(-1, -4, 0, 2, 8, 7, 'flame'), C(-3, -1, 0, 6, 2, 5, 'flame')])
         for k in range(3):
-            part('ember_%d' % k, 'body', (0, -7, -9 + k * 9), cubes=[C(-1.5, -6, -1.5, 3, 6, 3, 'flame')])
+            part('ember_%d' % k, 'body', (0, -8.5, -10 + k * 9), cubes=[C(-2, -7, -2, 4, 7, 4, 'flame')])
     elif el == 'ice':
-        for k, z in enumerate((-11, -6, 0, 6, 11)):
-            part('crystal_%d' % k, 'body', (0, -7, z), cubes=[C(-1.5, -6, -1.5, 3, 6, 3, 'crystal'), C(-1, -9 - (k % 2) * 3, -1, 2, 3 + (k % 2) * 3, 2, 'crystal')])
+        for k, z in enumerate((-12, -6, 0, 6, 11)):
+            part('crystal_%d' % k, 'body', (0, -8, z), cubes=[C(-2, -7, -2, 4, 7, 4, 'crystal'),
+                 C(-1.5, -10 - (k % 2) * 3, -1.5, 3, 3 + (k % 2) * 3, 3, 'crystal')])
         for lr, sg in sides:
-            part('crown_' + lr, 'head', (2.5 * sg, -3.5, -2), (-0.3, 0, 0.3 * sg), [C(-1, -5, -1, 2, 5, 2, 'crystal')])
-        part('tail_crystal', 'tail_tip', (0, 0, 6), cubes=[C(-1, -5, 0, 2, 10, 2, 'crystal'), C(-4, -1, 0, 8, 2, 2, 'crystal')])
+            part('crown_' + lr, 'head', (3.5 * sg, -5, -3), (-0.3, 0, 0.3 * sg), [C(-1.5, -7, -1.5, 3, 7, 3, 'crystal')])
+        part('tail_crystal', 'tail_tip', (0, 0, 7), cubes=[C(-1.5, -7, 0, 3, 14, 3, 'crystal'), C(-5, -1.5, 0, 10, 3, 3, 'crystal')])
     elif el == 'storm':
         for lr, sg in sides:
-            part('antler_' + lr, 'head', (3.5 * sg, -3.5, -2), (0.9, 0.35 * sg, 0), [C(-0.5, -0.5, 0, 1, 1, 6, 'horn')])
-            part('antler_%s_a' % lr, 'antler_' + lr, (0, 0, 6), (-0.5, 0, 0), [C(-0.5, -0.5, 0, 1, 1, 5, 'horn')])
-            part('antler_%s_b' % lr, 'antler_' + lr, (0, 0, 3), (0.2, 0.7 * sg, 0), [C(-0.5, -0.5, 0, 1, 1, 5, 'horn')])
-        part('bolt_a', 'tail_tip', (0, 0, 6), (0, 0.6, 0), [C(-0.5, -0.5, 0, 1, 1, 6, 'spike')])
-        part('bolt_b', 'bolt_a', (0, 0, 6), (0, -1.2, 0), [C(-0.5, -0.5, 0, 1, 1, 6, 'spike')])
-        for k, z in enumerate((-10, -4, 3, 9)):
-            part('spark_%d' % k, 'body', (0, -7, z), cubes=[C(-1.5, -7, -1.5, 3, 7, 3, 'spike')])
+            part('antler_' + lr, 'head', (4.5 * sg, -5, -3), (0.9, 0.35 * sg, 0), [C(-1, -1, 0, 2, 2, 7, 'horn')])
+            part('antler_%s_a' % lr, 'antler_' + lr, (0, 0, 7), (-0.5, 0, 0), [C(-1, -1, 0, 2, 2, 6, 'horn')])
+            part('antler_%s_b' % lr, 'antler_' + lr, (0, 0, 3), (0.2, 0.7 * sg, 0), [C(-1, -1, 0, 2, 2, 6, 'horn')])
+        part('bolt_a', 'tail_tip', (0, 0, 7), (0, 0.6, 0), [C(-1, -1, 0, 2, 2, 7, 'spike')])
+        part('bolt_b', 'bolt_a', (0, 0, 7), (0, -1.2, 0), [C(-1, -1, 0, 2, 2, 7, 'spike')])
+        for k, z in enumerate((-11, -4, 3, 10)):
+            part('spark_%d' % k, 'body', (0, -8.5, z), cubes=[C(-2, -9, -2, 4, 9, 4, 'spike')])
     else:
         for lr, sg in sides:
-            part('ear_fin_' + lr, 'head', (4.5 * sg, -1, -2), (0, -0.6 * sg, 0), [C(ox(sg, 6), -3, -0.5, 6, 5, 1, 'membrane', dil=(0, 0, -0.25))])
-        part('dorsal_fin', 'body', (0, -7, -10), cubes=[C(-0.5, -10, 0, 1, 10, 18, 'membrane', dil=(-0.25, 0, 0))])
-        part('tail_fin', 'tail5', (0, 0, 2), cubes=[C(-0.5, -6, 0, 1, 12, 8, 'membrane', dil=(-0.25, 0, 0))])
+            part('ear_fin_' + lr, 'head', (6 * sg, -1, -3), (0, -0.6 * sg, 0), [C(ox(sg, 8), -4, -0.5, 8, 7, 1, 'membrane', dil=(0, 0, -0.25))])
+        part('dorsal_fin', 'body', (0, -8.5, -11), cubes=[C(-0.5, -13, 0, 1, 13, 22, 'membrane', dil=(-0.25, 0, 0))])
+        part('tail_fin', 'tail5', (0, 0, 3), cubes=[C(-0.5, -8, 0, 1, 16, 10, 'membrane', dil=(-0.25, 0, 0))])
     return P
 
 def pal(**kw):
@@ -648,61 +673,32 @@ def armor_icon(name, piece, pal):
     img.save(os.path.join(TEX, 'item', name + '.png'))
 
 def armor_face(px, x0, y0, w, h, part, face, pal, rng, seed):
-    base, belly = pal['scale'], pal.get('belly', pal['scale'])
-    fur, horn, eye = pal.get('fur', (220, 220, 220)), pal.get('horn', (210, 200, 180)), pal['eye']
-    dark = shade(base, 0.34)
-    fz = lambda: shade(fur, 0.78 + 0.32 * rng.random())
+    horn, claw = pal.get('horn', (210, 200, 180)), pal.get('claw', (30, 30, 30))
+    S = face in SIDES
+    mid = (w // 2 - 2, w // 2 + 1)
     for j in range(h):
         for i in range(w):
-            t = j / max(1, h - 1)
-            c = mix(shade(base, 1.28), shade(base, 0.76), t)
-            c = shade(c, 0.92 + 0.16 * vnoise(i + seed, j, 3, seed))
-            if (j % 4 == 3) or ((i + (j // 4) * 2) % 4 == 3): c = shade(c, 0.74)
-            elif j % 4 == 0: c = shade(c, 1.13)
-            f = False
-            S = face in SIDES
-            if part == 'head':
+            c = pixel('scale', i, j, w, h, face, pal, rng, seed)
+            if part == 'body':
                 if face == 'front':
-                    if j == 0 or (j == 1 and rng.random() < 0.6) or (i in (0, w - 1) and 1 <= j <= 5): f = True
-                    elif j in (3, 4, 5) and 2 <= i <= w - 3: c = shade(base, 0.14)
-                    if j == 4 and i in (2, w - 3): c = eye
-                    if j >= 6 and i in (w // 2 - 1, w // 2): c = shade(base, 1.45)
-                elif face in ('left', 'right'):
-                    if j == 0 or (j == 1 and rng.random() < 0.4): f = True
-                    elif (j == 2 and 2 <= i <= 6) or (j == 3 and 4 <= i <= 7): c = shade(horn, 0.9 + 0.2 * rng.random())
-                elif face == 'back':
-                    if j == 0: f = True
-                    if i in (w // 2 - 1, w // 2) and j % 2 == 0: c = shade(base, 1.5)
-                elif face == 'top':
-                    if (1 <= i <= 2 or w - 3 <= i <= w - 2) and 1 <= j <= 3: c = shade(horn, 0.8 + 0.3 * (j == 1))
-                    elif i in (w // 2 - 1, w // 2): c = shade(base, 1.5)
-            elif part == 'body':
-                if S and (j == 0 or (j == 1 and rng.random() < 0.55)): f = True
-                if face == 'front':
-                    if i in (w // 2 - 1, w // 2) and 2 <= j <= 8: c = mix(c, belly, 0.5)
-                    if j in (4, 5) and i in (w // 2 - 1, w // 2): c = eye
-                    if j == 9: c = mix(TRIM, shade(TRIM, 0.7), 0.4 * (i % 2))
-                    if j >= 10: c = shade(c, 0.85)
-                if face == 'back':
-                    if i in (w // 2 - 1, w // 2) and j % 2 == 0: c = shade(base, 1.55)
-                    if j == 9: c = mix(TRIM, shade(TRIM, 0.7), 0.4 * (i % 2))
-                if face in ('left', 'right') and j == 9: c = mix(TRIM, shade(TRIM, 0.7), 0.4 * (i % 2))
-            elif part == 'arm':
-                if S:
+                    if mid[0] <= i <= mid[1]: c = pixel('plate', i, j, w, h, face, pal, rng, seed)
+                    elif j in (2, 4, 6, 8) and (i < mid[0] or i > mid[1]): c = shade(c, 0.5)
+                    elif j in (3, 5, 7, 9) and (i < mid[0] or i > mid[1]): c = shade(c, 1.2)
                     if j == 0 and i % 2 == 0: c = shade(horn, 1.0)
-                    elif j in (1, 2): c = shade(c, 1.2)
-                    if j >= 9 and (j == 9 or rng.random() < 0.5 + 0.2 * (11 - j)): f = True
-                    if j == 3: c = shade(c, 0.7)
-                elif face == 'top': c = shade(base, 1.3)
-            elif part == 'leg':
-                if S:
-                    if 5 <= j <= 6 and 1 <= i <= w - 2: c = shade(c, 1.25)
-                    if j == 5 and i in (1, 2): c = shade(horn, 1.0)
-                    if j == 8 or (j == 9 and rng.random() < 0.5): f = True
-                    if j >= 10: c = shade(c, 0.6)
-                    if j == 11: c = shade(base, 0.25)
-            if f: c = fz()
-            elif w > 2 and h > 2 and (i in (0, w - 1) or j in (0, h - 1)) and not (part == 'head' and face == 'front' and j in (3, 4, 5)): c = dark
+                elif face == 'back':
+                    if i in (w // 2 - 1, w // 2): c = shade(c, 0.55 if j % 2 else 1.25)
+                    if j == 0 and i % 2 == 1: c = shade(horn, 1.0)
+            elif part == 'arm' and S:
+                if j == 0 and i % 2 == 0: c = shade(horn, 1.0)
+                elif j == 1: c = shade(c, 1.25)
+                if 5 <= j <= 6: c = shade(c, 0.8)
+                if j >= 10: c = shade(claw, 1.3) if i % 2 == 0 else shade(c, 0.6)
+            elif part == 'leg' and S:
+                if j == 5: c = shade(c, 1.35)
+                if j == 6: c = shade(c, 0.6)
+                if j >= 9 and j <= 10 and i % 2 == 1: c = shade(horn, 0.9)
+                if j == 11: c = shade(claw, 0.9)
+            if S and (i in (0, w - 1) or j == h - 1) and w > 2: c = shade(c, 0.85)
             px[x0 + i, y0 + j] = c + (255,)
 
 def equipment_textures(el, pal):
@@ -764,6 +760,93 @@ def heart_icon():
             px[xx, yy] = c + (255,)
     img.save(os.path.join(TEX, 'item', 'ash_heart.png'))
 
+def helm_cubes():
+    """Cabeza de dragon con las fauces abiertas alrededor de la cara. Coordenadas del modelo (y hacia arriba).
+    La cabeza del jugador ocupa [1.6, 14.4] en x/y/z; su cara mira al norte (z = 1.6)."""
+    L = []
+    def add(x0, y0, z0, x1, y1, z1, mat, faces=None): L.append(dict(f=(x0, y0, z0), t=(x1, y1, z1), mat=mat, faces=faces or {}))
+    def pair(x0, y0, z0, x1, y1, z1, mat, faces=None):
+        add(x0, y0, z0, x1, y1, z1, mat, faces); add(16 - x1, y0, z0, 16 - x0, y1, z1, mat, faces)
+    add(1, 14.4, 1, 15, 16.8, 15.4, 'scale')                       # casquete
+    add(1.2, 2, 14.4, 14.8, 14.4, 16.6, 'scale')                   # nuca
+    pair(14.4, 4, 4, 16.4, 14.4, 15, 'scale')                      # placas laterales
+    pair(14.4, 1.5, 8, 16.4, 4, 15, 'scale')
+    add(4.5, 14.4, -9.5, 11.5, 17.4, 2.4, 'scale', {'bottom': 'mouth'})   # hocico superior
+    add(5.2, 14.7, -14.5, 10.8, 17.2, -9.5, 'scale', {'bottom': 'mouth'})
+    add(6, 15.8, -15, 7, 16.8, -14.5, 'claw'); add(9, 15.8, -15, 10, 16.8, -14.5, 'claw')
+    add(2.4, 13.6, 0.2, 13.6, 14.6, 2.4, 'scale')                  # ceja
+    pair(2, 14.4, -1.5, 4, 16.6, 2, 'horn')                        # cuernos de ceja
+    pair(4, 13.9, 0.8, 5.4, 14.6, 2, 'eye')                        # gemas
+    for x in (5, 9.5):
+        for z in (-8.5, -5.5, -2.5): add(x, 12.2, z, x + 1, 14.4, z + 1, 'teeth')    # dientes superiores
+    add(5.4, 12, -14.2, 6.4, 14.7, -13.2, 'teeth'); add(9.6, 12, -14.2, 10.6, 14.7, -13.2, 'teeth')
+    add(4.5, -1.4, -8, 11.5, 1.6, 3, 'scale', {'top': 'mouth'})   # mandibula
+    add(5.5, -1.4, -11, 10.5, 0.6, -8, 'scale')
+    for x in (5.2, 9.6):
+        for z in (-10, -7, -4, -1): add(x, 1.6, z, x + 1, 3.4, z + 1, 'teeth')       # dientes inferiores
+    pair(11.6, -1.4, 1, 14.4, 2.2, 5, 'scale')                     # articulacion de la mandibula
+    pair(11.5, 14.4, 9, 14.5, 17.4, 13, 'horn')                    # cuernos en escalera hacia atras
+    pair(12, 16.6, 12.5, 14.2, 19, 16, 'horn')
+    pair(12.3, 18.2, 15.5, 13.9, 20, 19.5, 'horn')
+    pair(12.6, 19.4, 18.5, 13.6, 20.8, 22, 'horn')
+    for k, z in enumerate((8, 11.5, 15)): add(7, 16.6 - k * 0.6, z, 9, 19.4 - k * 1.0, z + 1.6, 'spike')   # cresta
+    add(2, 3, 16.4, 14, 15, 17.4, 'membrane')                      # volante del cuello
+    for x in (2.5, 5, 7.5, 10, 12.5): add(x, 15, 16.4, x + 1, 17, 17.4, 'spike')
+    return L
+
+def helm_model(el, pal):
+    import json as _json
+    cubes = helm_cubes()
+    sz = lambda c, k: max(1, math.ceil(c['t'][k] - c['f'][k]))
+    cs = [C(0, 0, 0, sz(c, 0), sz(c, 1), sz(c, 2), c['mat'], c['faces']) for c in cubes]
+    parts = [Part('h', None, (0, 0, 0), cubes=cs)]
+    size, pos = pack(parts)
+    name = el + '_dragon_helm'
+    paint(parts, size, pos, pal, name, sub='item')
+    elements = []
+    for c, cc in zip(cubes, cs):
+        u, v = pos[ckey(cc)]; w, h, d = cc['s']
+        rect = lambda x0, y0, x1, y1: {'uv': [x0, y0, x1, y1], 'texture': '#0'}
+        faces = {'north': rect(u + d, v + d, u + d + w, v + d + h), 'south': rect(u + 2 * d + w, v + d, u + 2 * d + 2 * w, v + d + h),
+                 'east': rect(u + d + w, v + d, u + 2 * d + w, v + d + h), 'west': rect(u, v + d, u + d, v + d + h),
+                 'up': rect(u + d, v, u + d + w, v + d), 'down': rect(u + d + w, v, u + 2 * d + w, v + d)}
+        elements.append({'from': list(c['f']), 'to': list(c['t']), 'faces': faces})
+    model = {'texture_size': [size, size], 'textures': {'0': 'emberwyrms:item/' + name, 'particle': 'emberwyrms:item/' + name},
+             'elements': elements,
+             'display': {'head': {'rotation': [0, 0, 0], 'translation': [0, 0, 0], 'scale': [1, 1, 1]},
+                         'gui': {'rotation': [22, 195, 0], 'translation': [0, -1, 0], 'scale': [0.55, 0.55, 0.55]},
+                         'fixed': {'rotation': [0, 180, 0], 'translation': [0, 0, 0], 'scale': [0.6, 0.6, 0.6]},
+                         'ground': {'rotation': [0, 0, 0], 'translation': [0, 2, 0], 'scale': [0.45, 0.45, 0.45]},
+                         'thirdperson_righthand': {'rotation': [0, 0, 0], 'translation': [0, 3, 1], 'scale': [0.4, 0.4, 0.4]},
+                         'firstperson_righthand': {'rotation': [0, 0, 0], 'translation': [0, 4, 2], 'scale': [0.4, 0.4, 0.4]}}}
+    d = os.path.join(TEX, '..', 'models', 'item'); os.makedirs(d, exist_ok=True)
+    _json.dump(model, open(os.path.join(d, el + '_dragon_helmet.json'), 'w'), indent=1)
+
+def wings_texture(el, pal):
+    """Alas de dragon sobre el modelo del elytro (region 10x20 en u=22,v=0; se usa la cara frontal y trasera)."""
+    img = Image.new('RGBA', (64, 32), (0, 0, 0, 0)); px = img.load(); rng = random.Random(el + 'wings')
+    bone, mem = shade(pal.get('bone', (90, 90, 90)), 1.15), pal['membrane']
+    fingers = {1: 19, 4: 17, 8: 19}
+    def membrane_bottom(i):
+        f = min(fingers, key=lambda k: abs(k - i))
+        return fingers[f] - int(2.4 * abs(i - f))
+    def wing(x0, y0):
+        for j in range(20):
+            for i in range(10):
+                col = None
+                if j <= 1: col = shade(bone, 1.0 - 0.1 * j)
+                elif i in fingers and j <= fingers[i]: col = shade(bone, 0.85 + 0.25 * ((j + i) % 2))
+                elif j <= membrane_bottom(i):
+                    col = shade(mem, 0.75 + 0.5 * vnoise(i, j, 4, 3)) if abs(vnoise(i, j, 3, 9) - 0.5) > 0.06 else shade(mem, 0.5)
+                if i in fingers and j == fingers[i]: col = shade(pal.get('claw', (30, 30, 30)), 1.4)
+                if col: px[x0 + i, y0 + j] = col + (255,)
+    wing(24, 2); wing(36, 2)
+    for yy in range(2, 22):
+        px[22, yy] = px[23, yy] = bone + (255,); px[34, yy] = px[35, yy] = bone + (255,)
+    for xx in range(24, 34): px[xx, 0] = px[xx, 1] = bone + (255,)
+    d = os.path.join(TEX, 'entity', 'equipment', 'wings'); os.makedirs(d, exist_ok=True)
+    img.save(os.path.join(d, el + '_dragon.png'))
+
 # =================================================================== ICONOS
 def egg(name, c1, c2):
     img = Image.new('RGBA', (16, 16), (0, 0, 0, 0)); px = img.load(); rng = random.Random(name)
@@ -798,7 +881,7 @@ if __name__ == '__main__':
         pl = ELPAL[el]
         egg(el + '_dragon_spawn_egg', pl['scale'], pl['ember']); scale_icon(el + '_dragon_scale', pl['scale'])
         eggblock(el + '_dragon_egg', pl['scale'], pl['ember'])
-        equipment_textures(el, pl)
+        equipment_textures(el, pl); helm_model(el, pl); wings_texture(el, pl)
         for piece in ('helmet', 'chestplate', 'leggings', 'boots'):
             armor_icon('%s_dragon_%s' % (el, piece), piece, pl)
     eggblock('phoenix_egg', (222, 72, 30), (255, 210, 70)); feather_icon()

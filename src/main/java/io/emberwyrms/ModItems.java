@@ -39,6 +39,15 @@ public class ModItems {
     public static final Item STORM_DRAGON_SPAWN_EGG = reg("storm_dragon_spawn_egg", s -> new SpawnEggItem(s.spawnEgg(ModEntities.STORM_DRAGON)));
     public static final Item TIDE_DRAGON_SPAWN_EGG = reg("tide_dragon_spawn_egg", s -> new SpawnEggItem(s.spawnEgg(ModEntities.TIDE_DRAGON)));
 
+    public static Item eggOf(io.emberwyrms.entity.DragonElement element) {
+        return switch (element) {
+            case FIRE -> FIRE_DRAGON_EGG;
+            case ICE -> ICE_DRAGON_EGG;
+            case STORM -> STORM_DRAGON_EGG;
+            case TIDE -> TIDE_DRAGON_EGG;
+        };
+    }
+
     static Item reg(String name, Function<Item.Settings, Item> factory) {
         RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, Emberwyrms.id(name));
         return Registry.register(Registries.ITEM, key, factory.apply(new Item.Settings().registryKey(key)));

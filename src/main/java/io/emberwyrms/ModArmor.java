@@ -1,6 +1,9 @@
 package io.emberwyrms;
 
 import java.util.Map;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.EquippableComponent;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraft.item.equipment.ArmorMaterial;
 import net.minecraft.item.equipment.EquipmentAsset;
@@ -10,6 +13,7 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.util.Unit;
 
 /** 4 sets de armadura (fuego, hielo, rayo, agua) hechos con escamas de dragon. */
 public class ModArmor {
@@ -33,7 +37,16 @@ public class ModArmor {
             ArmorMaterial mat = material(ELEMENTS[e]);
             for (int p = 0; p < 4; p++) {
                 final EquipmentType type = TYPES[p];
-                PIECES[e][p] = ModItems.reg(ELEMENTS[e] + "_dragon_" + PARTS[p], s -> new Item(s.armor(mat, type)));
+                PIECES[e][p] = ModItems.reg(ELEMENTS[e] + "_dragon_" + PARTS[p], s -> {
+                    Item.Settings st = s.armor(mat, type);
+                    if (type == EquipmentType.HELMET) {
+                        // sin "asset" de armadura: se dibuja el modelo 3D del item (cabeza de dragon) sobre la cabeza
+                        st = st.component(DataComponentTypes.EQUIPPABLE, EquippableComponent.builder(EquipmentSlot.HEAD)
+                                .equipSound(SoundEvents.ITEM_ARMOR_EQUIP_NETHERITE).build());
+                    }
+                    if (type == EquipmentType.CHESTPLATE) st = st.component(DataComponentTypes.GLIDER, Unit.INSTANCE);
+                    return new Item(st);
+                });
             }
         }
     }

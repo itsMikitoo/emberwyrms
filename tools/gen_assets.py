@@ -47,14 +47,16 @@ for el, (e_es, e_en) in EL.items():
       {'type': 'minecraft:item', 'name': 'emberwyrms:%s_dragon_scale' % el, 'functions': count(1, 3)}]}]})
     w(D + 'tags/item/repairs_%s_dragon_armor.json' % el, {'values': ['emberwyrms:%s_dragon_scale' % el]})
     w(A + 'equipment/%s_dragon.json' % el, {'layers': {'humanoid': [{'texture': 'emberwyrms:%s_dragon' % el}],
-      'humanoid_leggings': [{'texture': 'emberwyrms:%s_dragon' % el}]}})
+      'humanoid_leggings': [{'texture': 'emberwyrms:%s_dragon' % el}],
+      'wings': [{'texture': 'emberwyrms:%s_dragon' % el}]}})
     en.update({f"entity.emberwyrms.{el}_dragon": f"{e_en} Dragon", f"item.emberwyrms.{el}_dragon_scale": f"{e_en} Dragon Scale",
                f"block.emberwyrms.{el}_dragon_egg": f"{e_en} Dragon Egg", f"item.emberwyrms.{el}_dragon_spawn_egg": f"{e_en} Dragon Spawn Egg"})
     es.update({f"entity.emberwyrms.{el}_dragon": f"Dragón de {e_es}", f"item.emberwyrms.{el}_dragon_scale": f"Escama de dragón de {e_es}",
                f"block.emberwyrms.{el}_dragon_egg": f"Huevo de dragón de {e_es}", f"item.emberwyrms.{el}_dragon_spawn_egg": f"Huevo generador de dragón de {e_es}"})
     for piece, (pattern, p_en, p_es) in PIECES.items():
         n = f'{el}_dragon_{piece}'
-        item_def(n); flat(n)
+        item_def(n)
+        if piece != 'helmet': flat(n)
         w(D + 'recipe/%s.json' % n, {'type': 'minecraft:crafting_shaped', 'category': 'equipment',
           'key': {'S': 'emberwyrms:%s_dragon_scale' % el}, 'pattern': pattern, 'result': {'id': 'emberwyrms:' + n, 'count': 1}})
         en['item.emberwyrms.' + n] = f'{e_en} Dragon {p_en}'
@@ -67,12 +69,14 @@ w(D + 'loot_table/entities/ash_dragon.json', {'type': 'minecraft:entity', 'pools
   {'rolls': 1, 'entries': [{'type': 'minecraft:item', 'name': 'emberwyrms:ash_heart'}]},
   {'rolls': 1, 'entries': [{'type': 'minecraft:item', 'name': 'emberwyrms:emberscale', 'functions': count(6, 12)}]},
   {'rolls': 1, 'entries': [{'type': 'minecraft:item', 'name': 'emberwyrms:fire_dragon_scale', 'functions': count(2, 5)}]}]})
-en.update({"entity.emberwyrms.ash_dragon": "Ash Dragon", "item.emberwyrms.ash_dragon_spawn_egg": "Ash Dragon Spawn Egg",
+en.update({"entity.emberwyrms.dragon.info": "Stage %1$s - day %2$s - %3$s", "entity.emberwyrms.dragon.male": "Male", "entity.emberwyrms.dragon.female": "Female",
+           "entity.emberwyrms.ash_dragon": "Ash Dragon", "item.emberwyrms.ash_dragon_spawn_egg": "Ash Dragon Spawn Egg",
            "item.emberwyrms.ash_heart": "Ashen Heart", "item.emberwyrms.dragon_horn": "Dragon Horn",
            "item.emberwyrms.dragon_horn.unavailable": "The Dragonlands are not available",
            "biome.emberwyrms.volcanic_peaks": "Volcanic Peaks", "biome.emberwyrms.glacial_spires": "Glacial Spires",
            "biome.emberwyrms.storm_plateau": "Storm Plateau", "biome.emberwyrms.tide_marsh": "Tide Marsh"})
-es.update({"entity.emberwyrms.ash_dragon": "Dragón de Ceniza", "item.emberwyrms.ash_dragon_spawn_egg": "Huevo generador de Dragón de Ceniza",
+es.update({"entity.emberwyrms.dragon.info": "Etapa %1$s - día %2$s - %3$s", "entity.emberwyrms.dragon.male": "Macho", "entity.emberwyrms.dragon.female": "Hembra",
+           "entity.emberwyrms.ash_dragon": "Dragón de Ceniza", "item.emberwyrms.ash_dragon_spawn_egg": "Huevo generador de Dragón de Ceniza",
            "item.emberwyrms.ash_heart": "Corazón ceniciento", "item.emberwyrms.dragon_horn": "Cuerno del Dragón",
            "item.emberwyrms.dragon_horn.unavailable": "La Tierra de Dragones no está disponible",
            "biome.emberwyrms.volcanic_peaks": "Picos Volcánicos", "biome.emberwyrms.glacial_spires": "Agujas Glaciales",

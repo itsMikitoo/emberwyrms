@@ -1,6 +1,6 @@
 package io.emberwyrms.entity;
 
-import java.util.UUID;
+import io.emberwyrms.ModItems;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LightningEntity;
@@ -19,6 +19,7 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.mob.Monster;
+import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.passive.PassiveEntity;
 import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -27,16 +28,25 @@ import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
-/** Dragon elemental (fuego, hielo, rayo, agua). Cria -> adulto. Aliento con efecto segun elemento. */
+/**
+ * Dragon elemental con las 5 etapas de vida de Ice and Fire (1 dia de Minecraft = 24000 ticks):
+ * E1 0-24 dias (recien nacido, se lleva sobre la cabeza), E2 25-49 (usa aliento), E3 50-74 (se monta y vuela),
+ * E4 75-99 (se reproduce), E5 100+ (maximo poder; tamaño maximo a los 125 dias).
+ * La edad se guarda en el atributo SCALE (asi se conserva sola al guardar el mundo y se sincroniza con el cliente).
+ */
 public class DragonEntity extends TameableEntity {
-    /** Ticks que tarda una cria en hacerse adulta (24000 = 20 minutos). */
-    public static final int GROW_TICKS = 24000;
+    public static final String INIT_TAG = "ew_init";
+    public static final float TICKS_PER_DAY = 24000f;
+    public static final float MAX_DAYS = 125f;
+    private static final double MIN_SCALE = 0.15;
+    private static final double SCALE_RANGE = 0.85;
     private static final TrackedData<Boolean> BREATHING =
             DataTracker.registerData(DragonEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 
@@ -44,6 +54,7 @@ public class DragonEntity extends TameableEntity {
     public final AnimTracker anim = new AnimTracker();
     private int breathCooldown = 100;
     private int breathingTicks;
+    private int ageAccumulator;
 
     public DragonEntity(EntityType<? extends DragonEntity> type, World world, DragonElement element) {
         super(type, world);
@@ -52,14 +63,56 @@ public class DragonEntity extends TameableEntity {
 
     public static DefaultAttributeContainer.Builder createAttributes() {
         return MobEntity.createMobAttributes()
-                .add(EntityAttributes.MAX_HEALTH, 80.0)
+                .add(EntityAttributes.MAX_HEALTH, 120.0)
                 .add(EntityAttributes.MOVEMENT_SPEED, 0.27)
-                .add(EntityAttributes.ATTACK_DAMAGE, 10.0)
+                .add(EntityAttributes.ATTACK_DAMAGE, 16.0)
                 .add(EntityAttributes.FOLLOW_RANGE, 32.0)
                 .add(EntityAttributes.STEP_HEIGHT, 1.2)
                 .add(EntityAttributes.SAFE_FALL_DISTANCE, 128.0);
     }
 
+    // ------------------------------------------------------------------ edad y etapas
+    public static double scaleForDays(float days) {
+        return MIN_SCALE + SCALE_RANGE * Math.min(days, MAX_DAYS) / MAX_DAYS;
+    }
+
+    public float getAgeDays() {
+        EntityAttributeInstance inst = this.getAttributeInstance(EntityAttributes.SCALE);
+        double s = inst == null ? 1.0 : inst.getBaseValue();
+        return (float) ((s - MIN_SCALE) / SCALE_RANGE * MAX_DAYS);
+    }
+
+    public void setAgeDays(float days) {
+        EntityAttributeInstance inst = this.getAttributeInstance(EntityAttributes.SCALE);
+        if (inst != null) inst.setBaseValue(scaleForDays(days));
+        float f = Math.min(days, MAX_DAYS) / MAX_DAYS;
+        EntityAttributeInstance hp = this.getAttributeInstance(EntityAttributes.MAX_HEALTH);
+        if (hp != null) {
+            float old = this.getMaxHealth();
+            hp.setBaseValue(10.0 + 110.0 * f);
+            float now = this.getMaxHealth();
+            if (now > old) this.heal(now - old);
+        }
+        EntityAttributeInstance atk = this.getAttributeInstance(EntityAttributes.ATTACK_DAMAGE);
+        if (atk != null) atk.setBaseValue(2.0 + 14.0 * f);
+    }
+
+    public int getStage() {
+        float d = this.getAgeDays();
+        return d < 25f ? 1 : d < 50f ? 2 : d < 75f ? 3 : d < 100f ? 4 : 5;
+    }
+
+    /** El sexo sale de la UUID: es estable, se guarda solo y no necesita datos extra. */
+    public boolean isFemale() {
+        return (this.getUuid().getLeastSignificantBits() & 1L) == 0L;
+    }
+
+    private Text info() {
+        return Text.translatable("entity.emberwyrms.dragon.info", this.getStage(), Math.round(this.getAgeDays()),
+                Text.translatable(this.isFemale() ? "entity.emberwyrms.dragon.female" : "entity.emberwyrms.dragon.male"));
+    }
+
+    // ------------------------------------------------------------------ datos y objetivos
     @Override
     protected void initDataTracker(DataTracker.Builder builder) {
         super.initDataTracker(builder);
@@ -70,14 +123,9 @@ public class DragonEntity extends TameableEntity {
         return this.dataTracker.get(BREATHING);
     }
 
-    /** Las crias se escalan con el atributo SCALE, asi que desactivamos el "bebe" de vanilla. */
     @Override
     public boolean isBaby() {
         return false;
-    }
-
-    public boolean isHatchling() {
-        return this.getBreedingAge() < 0;
     }
 
     @Override
@@ -100,34 +148,35 @@ public class DragonEntity extends TameableEntity {
         return stack.isIn(ItemTags.MEAT);
     }
 
+    // ------------------------------------------------------------------ tick
     @Override
     public void tick() {
         super.tick();
         this.anim.update(this);
         this.setNoGravity(this.getControllingPassenger() != null);
         World w = this.getEntityWorld();
-        if (!w.isClient() && w instanceof ServerWorld sw) {
-            this.updateGrowthScale();
-            if (this.breathingTicks > 0 && --this.breathingTicks == 0) {
-                this.dataTracker.set(BREATHING, false);
-            }
-            if (this.breathCooldown > 0) this.breathCooldown--;
-            LivingEntity rider = this.getControllingPassenger();
-            if (rider != null && this.breathCooldown <= 0) this.riderBreath(sw, rider);
-            LivingEntity t = this.getTarget();
-            if (t != null && t.isAlive() && this.breathCooldown <= 0 && !this.isHatchling() && !this.isSitting()) {
-                float d = this.distanceTo(t);
-                if (d >= 3.0f && d <= 14.0f && this.canSee(t)) this.breathe(sw, t);
-            }
-        }
-    }
+        if (w.isClient() || !(w instanceof ServerWorld sw)) return;
 
-    private void updateGrowthScale() {
-        int age = this.getBreedingAge();
-        float g = age < 0 ? 0.35f + 0.65f * (1f + age / (float) GROW_TICKS) : 1f;
-        g = Math.max(0.35f, Math.min(1f, g));
-        EntityAttributeInstance inst = this.getAttributeInstance(EntityAttributes.SCALE);
-        if (inst != null && Math.abs(inst.getBaseValue() - g) > 0.01) inst.setBaseValue(g);
+        if (!this.getCommandTags().contains(INIT_TAG)) {
+            this.addCommandTag(INIT_TAG);
+            if (!this.isTamed()) this.setAgeDays(75f + this.random.nextFloat() * 50f);
+        }
+        if (++this.ageAccumulator >= 100) {
+            this.ageAccumulator = 0;
+            this.setAgeDays(this.getAgeDays() + 100f / TICKS_PER_DAY);
+        }
+        if (this.getVehicle() instanceof PlayerEntity carrier && (carrier.isSneaking() || this.getStage() >= 3 || !this.isTamed())) {
+            this.stopRiding();
+        }
+        if (this.breathingTicks > 0 && --this.breathingTicks == 0) this.dataTracker.set(BREATHING, false);
+        if (this.breathCooldown > 0) this.breathCooldown--;
+        LivingEntity rider = this.getControllingPassenger();
+        if (rider != null && this.breathCooldown <= 0) this.riderBreath(sw, rider);
+        LivingEntity t = this.getTarget();
+        if (t != null && t.isAlive() && this.breathCooldown <= 0 && this.getStage() >= 2 && !this.isSitting()) {
+            float d = this.distanceTo(t);
+            if (d >= 3.0f && d <= 14.0f && this.canSee(t)) this.breathe(sw, t);
+        }
     }
 
     private boolean isAlly(LivingEntity e) {
@@ -152,9 +201,10 @@ public class DragonEntity extends TameableEntity {
         }
         sw.spawnParticles(this.element.particle, to.x, to.y, to.z, 30, 1.0, 0.5, 1.0, 0.05);
 
+        float power = 0.5f + 0.5f * Math.min(1f, this.getAgeDays() / 100f);
         Box box = t.getBoundingBox().expand(2.5);
         for (LivingEntity e : sw.getEntitiesByClass(LivingEntity.class, box, x -> x != this && !this.isAlly(x))) {
-            e.damage(sw, sw.getDamageSources().mobAttack(this), this.element.damage);
+            e.damage(sw, sw.getDamageSources().mobAttack(this), this.element.damage * power);
             this.applyElementEffect(sw, e);
         }
     }
@@ -185,11 +235,13 @@ public class DragonEntity extends TameableEntity {
         }
     }
 
+    // ------------------------------------------------------------------ interaccion
     @Override
     public ActionResult interactMob(PlayerEntity player, Hand hand) {
         ItemStack stack = player.getStackInHand(hand);
+        boolean server = !this.getEntityWorld().isClient();
         if (!this.isTamed() && this.isBreedingItem(stack)) {
-            if (!this.getEntityWorld().isClient()) {
+            if (server) {
                 stack.decrementUnlessCreative(1, player);
                 if (this.random.nextInt(3) == 0) {
                     this.setOwner(player);
@@ -203,20 +255,33 @@ public class DragonEntity extends TameableEntity {
             }
             return ActionResult.SUCCESS;
         }
+        if (this.isTamed() && this.isOwner(player) && stack.isOf(ModItems.ASH_HEART) && this.getAgeDays() < MAX_DAYS) {
+            if (server) {
+                stack.decrementUnlessCreative(1, player);
+                this.setAgeDays(this.getAgeDays() + 25f);
+                this.getEntityWorld().sendEntityStatus(this, (byte) 7);
+                player.sendMessage(this.info(), true);
+            }
+            return ActionResult.SUCCESS;
+        }
         if (this.isTamed() && this.isBreedingItem(stack) && this.getHealth() < this.getMaxHealth()) {
-            if (!this.getEntityWorld().isClient()) {
+            if (server) {
                 stack.decrementUnlessCreative(1, player);
                 this.heal(10.0f);
             }
             return ActionResult.SUCCESS;
         }
         if (this.isTamed() && this.isOwner(player) && stack.isEmpty() && hand == Hand.MAIN_HAND) {
-            if (!this.getEntityWorld().isClient()) {
-                if (player.isSneaking() || this.isHatchling()) {
+            if (server) {
+                if (player.isSneaking()) {
                     this.setSitting(!this.isSitting());
                     this.jumping = false;
                     this.navigation.stop();
                     this.setTarget(null);
+                    player.sendMessage(this.info(), true);
+                } else if (this.getStage() <= 2) {
+                    this.setSitting(false);
+                    this.startRiding(player, true);
                 } else {
                     this.setSitting(false);
                     player.startRiding(this);
@@ -227,7 +292,36 @@ public class DragonEntity extends TameableEntity {
         return super.interactMob(player, hand);
     }
 
-    // ------------------------------------------------------------------ montura y vuelo
+    @Override
+    public boolean canBreedWith(AnimalEntity other) {
+        if (other == this || !(other instanceof DragonEntity d) || d.element != this.element) return false;
+        return this.isTamed() && d.isTamed() && this.getStage() >= 4 && d.getStage() >= 4
+                && this.isFemale() != d.isFemale() && this.isInLove() && d.isInLove();
+    }
+
+    @Override
+    public PassiveEntity createChild(ServerWorld world, PassiveEntity mate) {
+        Entity e = this.getType().create(world, SpawnReason.BREEDING);
+        if (e instanceof DragonEntity child) {
+            child.addCommandTag(INIT_TAG);
+            child.setAgeDays(0f);
+            if (this.getOwner() instanceof PlayerEntity p) child.setOwner(p);
+            return child;
+        }
+        return null;
+    }
+
+    /** Las hembras salvajes de etapa 4 y 5 pueden soltar un huevo al morir. */
+    @Override
+    public void onDeath(DamageSource source) {
+        super.onDeath(source);
+        if (this.getEntityWorld() instanceof ServerWorld sw && !this.isTamed() && this.isFemale()
+                && this.getStage() >= 4 && this.random.nextFloat() < 0.4f) {
+            this.dropStack(sw, new ItemStack(ModItems.eggOf(this.element)));
+        }
+    }
+
+    // ------------------------------------------------------------------ montura y vuelo (etapa 3+)
     @Override
     public LivingEntity getControllingPassenger() {
         return this.getFirstPassenger() instanceof PlayerEntity p ? p : null;
@@ -235,7 +329,7 @@ public class DragonEntity extends TameableEntity {
 
     @Override
     protected boolean canAddPassenger(Entity passenger) {
-        return this.getPassengerList().isEmpty() && !this.isHatchling();
+        return this.getPassengerList().isEmpty() && this.getStage() >= 3;
     }
 
     /** Con jinete: avanza hacia donde mira (W) incluyendo hacia arriba, asi que mirando arriba despega. */
@@ -255,7 +349,7 @@ public class DragonEntity extends TameableEntity {
         float side = rider.sidewaysSpeed * 0.5f;
         double yawRad = Math.toRadians(this.getYaw());
         Vec3d look = rider.getRotationVec(1.0f);
-        double speed = 0.6;
+        double speed = 0.45 + 0.25 * Math.min(1f, this.getAgeDays() / 100f);
         Vec3d target = Vec3d.ZERO;
         if (fwd > 0) {
             target = look.multiply(speed * fwd);
@@ -270,7 +364,6 @@ public class DragonEntity extends TameableEntity {
         this.move(MovementType.SELF, this.getVelocity());
     }
 
-    /** Ayuda de punteria: si montas, escupe aliento al monstruo mas cercano al que miras. */
     private void riderBreath(ServerWorld sw, LivingEntity rider) {
         Vec3d look = rider.getRotationVec(1.0f);
         LivingEntity best = null;
@@ -288,16 +381,6 @@ public class DragonEntity extends TameableEntity {
             }
         }
         if (best != null) this.breathe(sw, best);
-    }
-
-    @Override
-    public PassiveEntity createChild(ServerWorld world, PassiveEntity mate) {
-        Entity e = this.getType().create(world, SpawnReason.BREEDING);
-        if (e instanceof DragonEntity child) {
-            if (this.getOwner() instanceof PlayerEntity p) child.setOwner(p);
-            return child;
-        }
-        return null;
     }
 
     @Override
