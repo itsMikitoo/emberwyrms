@@ -28,11 +28,16 @@ public class ModItemGroups {
                         entries.add(ModItems.ICE_DRAGON_EGG);
                         entries.add(ModItems.STORM_DRAGON_EGG);
                         entries.add(ModItems.TIDE_DRAGON_EGG);
+                        entries.add(ModItems.PHOENIX_EGG);
+                        entries.add(ModItems.PHOENIX_FEATHER);
                         entries.add(ModItems.EMBERSCALE);
                         entries.add(ModItems.FIRE_DRAGON_SCALE);
                         entries.add(ModItems.ICE_DRAGON_SCALE);
                         entries.add(ModItems.STORM_DRAGON_SCALE);
                         entries.add(ModItems.TIDE_DRAGON_SCALE);
+                        for (net.minecraft.item.Item[] set : ModArmor.PIECES) {
+                            for (net.minecraft.item.Item piece : set) entries.add(piece);
+                        }
                     })
                     .build());
 

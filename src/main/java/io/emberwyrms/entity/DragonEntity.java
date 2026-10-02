@@ -5,6 +5,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LightningEntity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.MovementType;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
@@ -17,6 +18,7 @@ import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.entity.mob.Monster;
 import net.minecraft.entity.passive.PassiveEntity;
 import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -54,7 +56,8 @@ public class DragonEntity extends TameableEntity {
                 .add(EntityAttributes.MOVEMENT_SPEED, 0.27)
                 .add(EntityAttributes.ATTACK_DAMAGE, 10.0)
                 .add(EntityAttributes.FOLLOW_RANGE, 32.0)
-                .add(EntityAttributes.STEP_HEIGHT, 1.2);
+                .add(EntityAttributes.STEP_HEIGHT, 1.2)
+                .add(EntityAttributes.SAFE_FALL_DISTANCE, 128.0);
     }
 
     @Override
@@ -101,6 +104,7 @@ public class DragonEntity extends TameableEntity {
     public void tick() {
         super.tick();
         this.anim.update(this);
+        this.setNoGravity(this.getControllingPassenger() != null);
         World w = this.getEntityWorld();
         if (!w.isClient() && w instanceof ServerWorld sw) {
             this.updateGrowthScale();
@@ -108,6 +112,8 @@ public class DragonEntity extends TameableEntity {
                 this.dataTracker.set(BREATHING, false);
             }
             if (this.breathCooldown > 0) this.breathCooldown--;
+            LivingEntity rider = this.getControllingPassenger();
+            if (rider != null && this.breathCooldown <= 0) this.riderBreath(sw, rider);
             LivingEntity t = this.getTarget();
             if (t != null && t.isAlive() && this.breathCooldown <= 0 && !this.isHatchling() && !this.isSitting()) {
                 float d = this.distanceTo(t);
@@ -206,14 +212,82 @@ public class DragonEntity extends TameableEntity {
         }
         if (this.isTamed() && this.isOwner(player) && stack.isEmpty() && hand == Hand.MAIN_HAND) {
             if (!this.getEntityWorld().isClient()) {
-                this.setSitting(!this.isSitting());
-                this.jumping = false;
-                this.navigation.stop();
-                this.setTarget(null);
+                if (player.isSneaking() || this.isHatchling()) {
+                    this.setSitting(!this.isSitting());
+                    this.jumping = false;
+                    this.navigation.stop();
+                    this.setTarget(null);
+                } else {
+                    this.setSitting(false);
+                    player.startRiding(this);
+                }
             }
             return ActionResult.SUCCESS;
         }
         return super.interactMob(player, hand);
+    }
+
+    // ------------------------------------------------------------------ montura y vuelo
+    @Override
+    public LivingEntity getControllingPassenger() {
+        return this.getFirstPassenger() instanceof PlayerEntity p ? p : null;
+    }
+
+    @Override
+    protected boolean canAddPassenger(Entity passenger) {
+        return this.getPassengerList().isEmpty() && !this.isHatchling();
+    }
+
+    /** Con jinete: avanza hacia donde mira (W) incluyendo hacia arriba, asi que mirando arriba despega. */
+    @Override
+    public void travel(Vec3d input) {
+        LivingEntity rider = this.getControllingPassenger();
+        if (rider == null || !this.isAlive()) {
+            super.travel(input);
+            return;
+        }
+        this.setYaw(rider.getYaw());
+        this.setPitch(rider.getPitch() * 0.5f);
+        this.bodyYaw = this.getYaw();
+        this.headYaw = this.getYaw();
+
+        float fwd = rider.forwardSpeed;
+        float side = rider.sidewaysSpeed * 0.5f;
+        double yawRad = Math.toRadians(this.getYaw());
+        Vec3d look = rider.getRotationVec(1.0f);
+        double speed = 0.6;
+        Vec3d target = Vec3d.ZERO;
+        if (fwd > 0) {
+            target = look.multiply(speed * fwd);
+        } else if (fwd < 0) {
+            target = new Vec3d(look.x, 0, look.z).multiply(speed * 0.5 * fwd);
+        }
+        target = target.add(new Vec3d(Math.cos(yawRad), 0, Math.sin(yawRad)).multiply(side * speed));
+        if (!this.isOnGround() && fwd == 0 && side == 0) {
+            target = new Vec3d(0, -0.04, 0);
+        }
+        this.setVelocity(this.getVelocity().lerp(target, 0.15));
+        this.move(MovementType.SELF, this.getVelocity());
+    }
+
+    /** Ayuda de punteria: si montas, escupe aliento al monstruo mas cercano al que miras. */
+    private void riderBreath(ServerWorld sw, LivingEntity rider) {
+        Vec3d look = rider.getRotationVec(1.0f);
+        LivingEntity best = null;
+        double bestD = 1e9;
+        Box area = this.getBoundingBox().expand(18.0);
+        for (LivingEntity e : sw.getEntitiesByClass(LivingEntity.class, area,
+                x -> x instanceof Monster && x.isAlive() && x != this && !this.isAlly(x))) {
+            Vec3d to = new Vec3d(e.getX() - this.getX(), e.getBodyY(0.5) - this.getEyeY(), e.getZ() - this.getZ());
+            double d = to.length();
+            if (d < 3.0 || d > 18.0) continue;
+            if (to.normalize().dotProduct(look) < 0.75) continue;
+            if (d < bestD) {
+                bestD = d;
+                best = e;
+            }
+        }
+        if (best != null) this.breathe(sw, best);
     }
 
     @Override

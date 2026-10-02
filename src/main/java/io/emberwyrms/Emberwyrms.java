@@ -15,6 +15,8 @@ public class Emberwyrms implements ModInitializer {
         ModEntities.register();
         ModBlocks.register();
         ModItems.register();
+        ModArmor.register();
+        ArmorPerks.register();
         ModItemGroups.register();
     }
 }

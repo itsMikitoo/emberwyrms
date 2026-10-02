@@ -53,13 +53,17 @@ def mix(a, b, t): return tuple(int(a[i] * (1 - t) + b[i] * t) for i in range(3))
 def pixel(mat, i, j, w, h, face, pal, rng, seed):
     base = pal.get(mat, (0, 0, 0)); n = rng.uniform(-0.05, 0.05)
     if mat == 'scale':
-        off = (j // 2) % 2; ii = i + off
-        cell = ((ii // 3) * 7 + (j // 2) * 13 + seed) % 97
-        c = shade(base, 0.9 + (cell % 7) * 0.025 + n)
-        if ii % 3 == 2 or j % 2 == 1:
-            c = shade(c, 0.72)
-            if cell % 23 == 0 and 'ember' in pal: c = mix(c, pal['ember'], 0.75)
-        elif ii % 3 == 0: c = shade(c, 1.12)
+        row = j // 3; xx = i + (row % 2) * 2
+        lx, ly = xx % 4, j % 3
+        cell = ((xx // 4) * 31 + row * 17 + seed) % 101
+        c = shade(base, 0.86 + (cell % 9) * 0.03 + n)
+        if face in ('front', 'back', 'left', 'right'):
+            c = shade(c, 0.84 + 0.3 * j / max(1, h - 1))
+        if lx == 3 or ly == 2:
+            c = shade(c, 0.6)
+            if 'ember' in pal and cell % 29 == 0: c = mix(c, pal['ember'], 0.8)
+        elif lx == 0 and ly == 0: c = shade(c, 1.28)
+        elif ly == 0: c = shade(c, 1.1)
         return c
     if mat == 'plate':
         c = shade(base, 0.97 + n); return shade(c, 0.7) if j % 3 == 2 else c
@@ -173,61 +177,108 @@ def build(cls, state, parts, pal, tex, anim):
     emit(cls, state, None, parts, size, pos, anim)
     print('%s: %d piezas, textura %dx%d' % (cls, len(parts), size, size))
 
-# =================================================================== ASHWING
+# =================================================================== DRAGON V2 (realista)
+HIND_L, HIND_A = (5.5, 6.5, 4.0), (-0.65, 0.55, -0.15)   # muslo, espinilla, metatarso / angulos absolutos
+FORE_L, FORE_A = (5.0, 5.0, 3.0), (0.40, -0.45, 0.10)
+HIP_REL_Y = 3.5
+NECK_REL = (-0.45, -0.25, -0.05, 0.1, 0.2, 0.2)
+FING_ANG = (0.30, 0.75, 1.15, 1.5)
+
+def chain_drop(Ls, As, foot=1.0): return sum(L * math.cos(a) for L, a in zip(Ls, As)) + foot
+
 def ashwing():
     P = []
     def part(*a, **k): P.append(Part(*a, **k))
+    sides = (('l', 1), ('r', -1))
+    body_abs = 24 - chain_drop(HIND_L, HIND_A) - HIP_REL_Y
+    fore_hip = (24 - chain_drop(FORE_L, FORE_A)) - body_abs
     part('frame', None, (0, 24, 0))
-    part('body', 'frame', (0, -14, 0), cubes=[
-        C(-6, -5, -11, 12, 11, 22, 'scale', {'bottom': 'plate'}),
-        C(-5.5, -4, -14, 11, 10, 3, 'scale'),
-        C(-5, -7, -9, 10, 2, 8, 'scale')] +
-        [C(-0.5, -8, z, 1, 3, 2, 'spike') for z in (-9, -5, -1, 3, 7)])
-    part('neck1', 'body', (0, -2, -13), (-0.55, 0, 0), [
-        C(-3, -3, -7, 6, 6, 8, 'scale', {'bottom': 'plate'}), C(-0.5, -5, -6, 1, 2, 2, 'spike'), C(-0.5, -5, -2, 1, 2, 2, 'spike')])
-    part('neck2', 'neck1', (0, 0, -7), (0.25, 0, 0), [
-        C(-2.5, -2.5, -7, 5, 5, 8, 'scale', {'bottom': 'plate'}), C(-0.5, -4.5, -5, 1, 2, 2, 'spike')])
-    part('head', 'neck2', (0, 0, -7), (0.4, 0, 0), [
-        C(-3.5, -3, -8, 7, 6, 8, 'scale'), C(-4, -4, -6, 8, 1, 4, 'scale'),
-        C(-2.5, -1.5, -14, 5, 3, 6, 'scale'),
-        C(-2, -1.7, -14.3, 1, 1, 1, 'claw'), C(1, -1.7, -14.3, 1, 1, 1, 'claw'),
-        C(-2, 1.5, -13, 1, 1, 2, 'teeth'), C(1, 1.5, -13, 1, 1, 2, 'teeth'),
-        C(-2, 1.5, -9, 1, 1, 1, 'teeth'), C(1, 1.5, -9, 1, 1, 1, 'teeth'),
-        C(3.3, -2, -6, 1, 1, 2, 'eye'), C(-4.3, -2, -6, 1, 1, 2, 'eye'),
-        C(3.5, -1, -3, 1, 2, 3, 'spike'), C(-4.5, -1, -3, 1, 2, 3, 'spike'),
-        C(-0.5, -5, -6, 1, 2, 4, 'spike'), C(-0.5, -5, -1, 1, 2, 3, 'spike')])
-    part('jaw', 'head', (0, 1.5, -1), cubes=[C(-2.5, 0, -12, 5, 1, 11, 'scale', {'top': 'plate'}), C(-0.5, 1, -12, 1, 2, 1, 'spike'),
-        C(-2, -1, -12, 1, 1, 2, 'teeth'), C(1, -1, -12, 1, 1, 2, 'teeth')])
-    for lr, s in (('l', 1), ('r', -1)):
-        part('horn_' + lr, 'head', (3 * s, -3, -1), (0.7, 0.3 * s, 0), [C(-1, -1, 0, 2, 2, 6, 'horn')])
-        part('horn_%s_tip' % lr, 'horn_' + lr, (0, 0, 6), (0.35, 0.15 * s, 0), [C(-0.5, -0.5, 0, 1, 1, 5, 'horn')])
-    for lr, s_ in (('l', 1), ('r', -1)):
-        part('frill_' + lr, 'neck2', (2.5 * s_, 0, -3), (0, -0.5 * s_, 0), [C(0 if s_ > 0 else -5, -3, 0, 5, 6, 1, 'membrane', dil=(0, 0, -0.25))])
-    tl = [(9, 3, 'scale'), (9, 2.5, 'scale'), (9, 2, 'scale'), (8, 1.5, 'scale')]
-    part('tail1', 'body', (0, -1, 10), cubes=[C(-3, -3, 0, 6, 6, 9, 'scale', {'bottom': 'plate'}), C(-0.5, -5, 2, 1, 2, 3, 'spike')])
-    part('tail2', 'tail1', (0, 0, 9), cubes=[C(-2.5, -2.5, 0, 5, 5, 9, 'scale', {'bottom': 'plate'}), C(-0.5, -4.5, 2, 1, 2, 3, 'spike')])
-    part('tail3', 'tail2', (0, 0, 9), cubes=[C(-2, -2, 0, 4, 4, 9, 'scale'), C(-0.5, -3.5, 2, 1, 2, 3, 'spike')])
-    part('tail4', 'tail3', (0, 0, 9), cubes=[C(-1.5, -1.5, 0, 3, 3, 8, 'scale')])
-    part('tail_tip', 'tail4', (0, 0, 8), cubes=[C(-0.5, -3.5, 0, 1, 7, 6, 'horn'), C(-3.5, -0.5, 1, 7, 1, 4, 'horn')])
-    for lr, s in (('l', 1), ('r', -1)):
-        ox = lambda L: 0 if s > 0 else -L
-        part('wing_' + lr, 'body', (5 * s, -4, -5), cubes=[C(ox(4), -2, -2, 4, 4, 4, 'scale')])
-        part('arm_' + lr, 'wing_' + lr, (4 * s, 0, 0), cubes=[C(ox(10), -1.5, -1.5, 10, 3, 3, 'scale'),
-             C(ox(10), -0.5, 1.5, 10, 1, 12, 'membrane', dil=(0, -0.25, 0)), C(ox(1) - 0 if s > 0 else -2, -1, -4, 1, 1, 3, 'claw')])
-        part('fore_' + lr, 'arm_' + lr, (10 * s, 0, 0), cubes=[C(ox(10), -1, -1, 10, 2, 2, 'scale')])
-        for k, (ang, ln) in enumerate(((0.45, 15), (0.95, 13), (1.45, 10))):
-            part('f%d_%s' % (k + 1, lr), 'fore_' + lr, (10 * s, 0, 0), (0, -ang * s, 0), [
-                C(ox(ln), -0.5, -0.5, ln, 1, 1, 'bone'), C(ox(ln), -0.5, 0.5, ln, 1, 6, 'membrane', dil=(0, -0.25, 0))])
-    for n, sx, z, hind in (('fl', 1, -8, 0), ('fr', -1, -8, 0), ('bl', 1, 7, 1), ('br', -1, 7, 1)):
-        part('leg_' + n, 'body', ((6 if hind else 5.5) * sx, 4, z), cubes=[
-            *([C(-3, -2, -3.5, 6, 8, 7, 'scale'), C(-3.5, -3, -3, 7, 5, 6, 'scale')] if hind else
-              [C(-2.5, -1, -3, 5, 6, 6, 'scale'), C(-3, -2, -3.5, 6, 4, 7, 'scale')])])
-        part('shin_' + n, 'leg_' + n, (0, 6 if hind else 5, 0), cubes=[C(-2, 0, -2, 4, 3 if hind else 4, 4, 'scale')])
-        part('foot_' + n, 'shin_' + n, (0, 3 if hind else 4, 0), cubes=[C(-2.5, 0, -4, 5, 1, 6, 'scale'),
-             C(-2, 0, -6, 1, 1, 2, 'claw'), C(-0.5, 0, -6, 1, 1, 2, 'claw'), C(1, 0, -6, 1, 1, 2, 'claw')])
+    spikes = []
+    for z, h in ((-10, 3), (-6, 2), (-2, 2), (2, 2), (6, 2), (10, 3)):
+        top = 6.5 if z < -4 else 5.5
+        spikes.append(C(-0.5, -top - h, z, 1, h, 2, 'spike'))
+    part('body', 'frame', (0, body_abs - 24, 0), cubes=[
+        C(-6, -6.5, -13, 12, 13, 9, 'scale', {'bottom': 'plate'}),
+        C(-5, -5.5, -4, 10, 11, 8, 'scale', {'bottom': 'plate'}),
+        C(-5.5, -5.5, 4, 11, 11, 8, 'scale', {'bottom': 'plate'})] + spikes)
+    # cuello en S: 6 segmentos
+    nw = (6, 6, 5, 5, 4, 4); prev = 'body'
+    for k in range(6):
+        w = nw[k]
+        part('neck%d' % (k + 1), prev, (0, -4.5, -11) if k == 0 else (0, 0, -6), (NECK_REL[k], 0, 0), [
+            C(-w / 2, -w / 2, -6, w, w, 6, 'scale', {'bottom': 'plate'}), C(-0.5, -w / 2 - 2, -5, 1, 2, 2, 'spike')])
+        prev = 'neck%d' % (k + 1)
+    # cabeza
+    teeth = [C(x, 2.5, z, 1, 1, 1, 'teeth') for x in (-2.5, 1.5) for z in (-11, -8)] + \
+            [C(x, 2, z, 1, 1, 1, 'teeth') for x in (-2, 1) for z in (-15, -13)]
+    part('head', 'neck6', (0, 0, -6), (0.4, 0, 0), [
+        C(-3.5, -3, -7, 7, 6, 7, 'scale'), C(-4, -4, -5, 8, 1, 3, 'scale'),
+        C(-2.5, -1.5, -12, 5, 4, 5, 'scale', {'bottom': 'plate'}), C(-2, -1, -16, 4, 3, 4, 'scale'),
+        C(-1.5, -1.5, -16.5, 1, 1, 1, 'claw'), C(0.5, -1.5, -16.5, 1, 1, 1, 'claw'),
+        C(3.4, -2, -5, 1, 1, 2, 'eye'), C(-4.4, -2, -5, 1, 1, 2, 'eye'),
+        C(3.5, -1, -2, 1, 2, 3, 'spike'), C(-4.5, -1, -2, 1, 2, 3, 'spike'),
+        C(-0.5, -5, -5, 1, 2, 4, 'spike')] + teeth)
+    part('jaw', 'head', (0, 2, -0.5), cubes=[C(-2.5, 0, -14, 5, 2, 13, 'scale', {'top': 'plate'}),
+        C(-2, -1, -14, 1, 1, 1, 'teeth'), C(1, -1, -14, 1, 1, 1, 'teeth'), C(-2, -1, -10, 1, 1, 1, 'teeth'),
+        C(1, -1, -10, 1, 1, 1, 'teeth'), C(-0.5, 2, -13, 1, 2, 1, 'spike')])
+    for lr, sg in sides:
+        part('horn_' + lr, 'head', (2.5 * sg, -3, -1), (0.2, 0.28 * sg, 0), [C(-1, -1, 0, 2, 2, 6, 'horn')])
+        part('horn_%s_2' % lr, 'horn_' + lr, (0, 0, 6), (0.1, 0.12 * sg, 0), [C(-1, -0.5, 0, 2, 1, 6, 'horn')])
+        part('horn_%s_3' % lr, 'horn_%s_2' % lr, (0, 0, 6), (0.2, 0.05 * sg, 0), [C(-0.5, -0.5, 0, 1, 1, 5, 'horn')])
+        part('brow_' + lr, 'head', (3 * sg, -4, -4), (0.25, -0.35 * sg, 0), [C(-0.5, -0.5, -4, 1, 1, 4, 'horn')])
+    # cola: 9 segmentos + punta
+    tw = (8, 7, 7, 6, 6, 5, 4, 3, 2); th = (8, 7, 6, 6, 5, 4, 3, 3, 2); prev = 'body'
+    for k in range(9):
+        cubes = [C(-tw[k] / 2, -th[k] / 2, 0, tw[k], th[k], 6, 'scale', {'bottom': 'plate'})]
+        if k < 8: cubes.append(C(-0.5, -th[k] / 2 - 2, 1, 1, 2, 3, 'spike'))
+        part('tail%d' % (k + 1), prev, (0, -0.5, 11) if k == 0 else (0, 0, 6), cubes=cubes)
+        prev = 'tail%d' % (k + 1)
+    part('tail_tip', 'tail9', (0, 0, 6), cubes=[C(-0.5, -4, 0, 1, 8, 6, 'horn'), C(-4, -0.5, 1, 8, 1, 4, 'horn')])
+    # alas enormes con 4 dedos y membrana en paneles
+    lens, gaps = (22, 20, 16, 12), (0.45, 0.4, 0.35, 0.3)
+    for lr, sg in sides:
+        ox = lambda x0, ln: x0 if sg > 0 else -(x0 + ln)
+        part('wing_' + lr, 'body', (5.5 * sg, -5.5, -8), cubes=[C(ox(0, 5), -2.5, -2.5, 5, 5, 5, 'scale')])
+        part('arm_' + lr, 'wing_' + lr, (4 * sg, 0, 0), cubes=[C(ox(0, 9), -2, -2, 9, 4, 4, 'scale'),
+             C(ox(0, 9), -0.5, 2, 9, 1, 16, 'membrane', dil=(0, -0.25, 0))])
+        part('fore_' + lr, 'arm_' + lr, (9 * sg, 0, 0), cubes=[C(ox(0, 12), -1.5, -1.5, 12, 3, 3, 'scale'),
+             C(ox(0, 12), -0.5, 1.5, 12, 1, 10, 'membrane', dil=(0, -0.25, 0)), C(ox(0, 1), -1, -4, 1, 1, 4, 'claw')])
+        for k in range(4):
+            L = lens[k]; seg = L // 3; x0 = 0
+            cubes = [C(ox(0, L), -0.5, -0.5, L, 1, 1, 'bone')]
+            for q in range(3):
+                ln = seg if q < 2 else L - 2 * seg
+                wd = max(2, int((x0 + ln / 2) * gaps[k]))
+                cubes.append(C(ox(x0, ln), -0.5, 0.5, ln, 1, wd, 'membrane', dil=(0, -0.25, 0)))
+                x0 += ln
+            part('f%d_%s' % (k + 1, lr), 'fore_' + lr, (12 * sg, 0, 0), (0, -FING_ANG[k] * sg, 0), cubes)
+    # patas digitigradas (4 tramos: muslo, espinilla, metatarso, pie)
+    for n, sx, z, hind in (('fl', 1, -9, False), ('fr', -1, -9, False), ('bl', 1, 8, True), ('br', -1, 8, True)):
+        Ls, As = (HIND_L, HIND_A) if hind else (FORE_L, FORE_A)
+        hy = HIP_REL_Y if hind else fore_hip
+        up = [C(-2.5, -1.5, -2.5, 5, math.ceil(Ls[0]) + 2, 5, 'scale'), C(-3, -3, -3.5, 6, 6, 7, 'scale')] if hind else \
+             [C(-2, -1.5, -2, 4, math.ceil(Ls[0]) + 2, 4, 'scale'), C(-2.5, -2.5, -3, 5, 5, 6, 'scale')]
+        part('leg_' + n, 'body', ((5 if hind else 5.5) * sx, hy, z), (As[0], 0, 0), up)
+        part('shin_' + n, 'leg_' + n, (0, Ls[0], 0), (As[1] - As[0], 0, 0), [C(-1.5, -1, -1.5, 3, math.ceil(Ls[1]) + 1, 3, 'scale')])
+        part('meta_' + n, 'shin_' + n, (0, Ls[1], 0), (As[2] - As[1], 0, 0), [C(-1, -0.5, -1, 2, math.ceil(Ls[2]) + 1, 2, 'scale')])
+        part('foot_' + n, 'meta_' + n, (0, Ls[2], 0), (-As[2], 0, 0), [C(-2, -1, -6, 4, 2, 7, 'scale'),
+             C(-2, -0.5, -8, 1, 1, 2, 'claw'), C(-0.5, -0.5, -8, 1, 1, 2, 'claw'), C(1, -0.5, -8, 1, 1, 2, 'claw')])
     return P
 
-ASH_ANIM = '''    @Override
+ASH_ANIM = r'''    private static final float HA1 = @HA1@, HR2 = @HR2@, HR3 = @HR3@, HF = @HF@;
+    private static final float FA1 = @FA1@, FR2 = @FR2@, FR3 = @FR3@, FF = @FF@;
+    private static final float[] NECK = {@NECK@};
+    private static final float[] FING = {@FING@};
+
+    private static void leg(ModelPart leg, ModelPart shin, ModelPart meta, ModelPart foot,
+                            float a1, float r2, float r3, float ff, float dh, float dk, float da) {
+        leg.pitch = a1 + dh;
+        shin.pitch = r2 + dk;
+        meta.pitch = r3 + da;
+        foot.pitch = ff - (dh + dk + da);
+    }
+
+    @Override
     public void setAngles(AshwingRenderState s) {
         super.setAngles(s);
         float t = s.age;
@@ -237,48 +288,64 @@ ASH_ANIM = '''    @Override
         float yawLook = s.relativeHeadYaw * 0.0174533f;
         float pitchLook = s.pitch * 0.0174533f;
         boolean sit = s.sitting;
+        boolean fly = s.flying;
 
-        this.frame.pitch = sit ? -0.45f : 0f;
+        this.frame.pitch = sit ? -0.4f : (fly ? 0.12f : 0f);
         this.body.pitch = breathe * 0.01f;
-        this.neck1.pitch = -0.55f + (sit ? 0.35f : 0f);
-        this.neck2.pitch = 0.25f;
-        this.neck1.yaw = yawLook * 0.3f;
-        this.neck2.yaw = yawLook * 0.3f;
-        this.head.yaw = yawLook * 0.4f;
-        this.head.pitch = 0.4f + pitchLook * 0.6f + breathe * 0.02f - (s.breathing ? 0.3f : 0f);
-        this.jaw.pitch = s.breathing ? 0.8f : 0.06f + (breathe + 1f) * 0.04f;
 
-        float sway = sin(t * 0.07f);
-        float walkSway = cos(f) * 0.1f * amp;
-        this.tail1.yaw = sway * 0.12f + walkSway;
-        this.tail2.yaw = sin(t * 0.07f - 0.6f) * 0.16f + walkSway;
-        this.tail3.yaw = sin(t * 0.07f - 1.2f) * 0.2f;
-        this.tail4.yaw = sin(t * 0.07f - 1.8f) * 0.24f;
-        this.tailTip.yaw = sin(t * 0.07f - 2.4f) * 0.28f;
-        this.tail1.pitch = sit ? 0.45f : 0f;
-
-        float fold = 0.88f;
-        float flutter = sin(t * 0.1f) * 0.025f;
-        this.wingL.yaw = -0.8f * fold;  this.wingR.yaw = 0.8f * fold;
-        this.wingL.roll = 0.3f * fold + flutter;  this.wingR.roll = -(0.3f * fold + flutter);
-        this.foreL.yaw = -1.2f * fold;  this.foreR.yaw = 1.2f * fold;
-        float[] base = {-0.45f, -0.95f, -1.45f};
-        ModelPart[] fl = {f1L, f2L, f3L};
-        ModelPart[] fr = {f1R, f2R, f3R};
-        for (int i = 0; i < 3; i++) {
-            fl[i].yaw = base[i] * (1f - 0.7f * fold);
-            fr[i].yaw = -base[i] * (1f - 0.7f * fold);
+        ModelPart[] neck = {neck1, neck2, neck3, neck4, neck5, neck6};
+        for (int i = 0; i < 6; i++) {
+            neck[i].pitch = NECK[i] + (fly ? 0.06f : 0f) + (s.breathing ? -0.04f : 0f) + (sit ? 0.08f : 0f);
+            neck[i].yaw = yawLook * 0.1f + sin(t * 0.05f - i * 0.5f) * 0.03f;
         }
+        this.head.yaw = yawLook * 0.4f;
+        this.head.pitch = 0.4f + pitchLook * 0.5f + breathe * 0.02f - (s.breathing ? 0.35f : 0f);
+        this.jaw.pitch = s.breathing ? 0.85f : 0.05f + (breathe + 1f) * 0.04f;
 
-        if (sit) {
-            this.legFl.pitch = 0.5f; this.legFr.pitch = 0.5f;
-            this.legBl.pitch = -0.9f; this.legBr.pitch = -0.9f;
-        } else {
-            float sw = cos(f) * 1.1f * amp;
-            this.legFl.pitch = sw;  this.legBr.pitch = sw;
-            this.legFr.pitch = -sw; this.legBl.pitch = -sw;
+        ModelPart[] tail = {tail1, tail2, tail3, tail4, tail5, tail6, tail7, tail8, tail9};
+        float walkSway = cos(f) * 0.06f * amp;
+        for (int i = 0; i < 9; i++) {
+            tail[i].yaw = sin(t * 0.06f - i * 0.55f) * (0.06f + i * 0.012f) + walkSway;
+            tail[i].pitch = sit ? (i == 0 ? 0.35f : 0.05f) : (fly ? -0.02f : 0f);
+        }
+        this.tailTip.yaw = sin(t * 0.06f - 5f) * 0.2f;
+
+        float swA = cos(f) * amp, swB = -swA;
+        float liftA = Math.max(0f, sin(f)) * amp, liftB = Math.max(0f, -sin(f)) * amp;
+        float sh = sit ? -0.9f : (fly ? 0.9f : 0f);
+        float sk = sit ? 1.1f : (fly ? 0.8f : 0f);
+        float sa = sit ? -0.2f : (fly ? 0.2f : 0f);
+        leg(legBl, shinBl, metaBl, footBl, HA1, HR2, HR3, HF, swA * 0.55f + sh, liftA * 0.7f + sk, -liftA * 0.35f + sa);
+        leg(legBr, shinBr, metaBr, footBr, HA1, HR2, HR3, HF, swB * 0.55f + sh, liftB * 0.7f + sk, -liftB * 0.35f + sa);
+        float fh = fly ? 0.6f : 0f;
+        leg(legFr, shinFr, metaFr, footFr, FA1, FR2, FR3, FF, swA * 0.5f + fh, liftA * 0.6f + fh, -liftA * 0.3f);
+        leg(legFl, shinFl, metaFl, footFl, FA1, FR2, FR3, FF, swB * 0.5f + fh, liftB * 0.6f + fh, -liftB * 0.3f);
+
+        float fold = fly ? 0f : 0.9f;
+        float flap = fly ? sin(t * 0.3f) : sin(t * 0.1f) * 0.04f;
+        this.wingL.yaw = -0.8f * fold + (fly ? -0.1f : 0f);
+        this.wingR.yaw = -this.wingL.yaw;
+        this.wingL.roll = 0.3f * fold - flap * (fly ? 0.75f : 1f);
+        this.wingR.roll = -this.wingL.roll;
+        this.armL.roll = fly ? -flap * 0.25f : 0f;
+        this.armR.roll = -this.armL.roll;
+        this.foreL.yaw = -1.2f * fold;
+        this.foreR.yaw = -this.foreL.yaw;
+        this.foreL.roll = fly ? -flap * 0.5f : 0f;
+        this.foreR.roll = -this.foreL.roll;
+        ModelPart[] fl = {f1L, f2L, f3L, f4L};
+        ModelPart[] fr = {f1R, f2R, f3R, f4R};
+        for (int i = 0; i < 4; i++) {
+            fl[i].yaw = -FING[i] * (1f - 0.72f * fold);
+            fr[i].yaw = -fl[i].yaw;
+            fl[i].roll = fly ? -flap * 0.25f * (i + 1) / 4f : 0f;
+            fr[i].roll = -fl[i].roll;
         }
     }'''
+ASH_ANIM = (ASH_ANIM.replace('@HA1@', fm(HIND_A[0])).replace('@HR2@', fm(HIND_A[1] - HIND_A[0])).replace('@HR3@', fm(HIND_A[2] - HIND_A[1]))
+            .replace('@HF@', fm(-HIND_A[2])).replace('@FA1@', fm(FORE_A[0])).replace('@FR2@', fm(FORE_A[1] - FORE_A[0]))
+            .replace('@FR3@', fm(FORE_A[2] - FORE_A[1])).replace('@FF@', fm(-FORE_A[2]))
+            .replace('@NECK@', ', '.join(fm(x) for x in NECK_REL)).replace('@FING@', ', '.join(fm(x) for x in FING_ANG)))
 
 ASH_PAL = dict(scale=(62, 56, 60), plate=(152, 122, 96), horn=(196, 180, 154), membrane=(104, 40, 34),
                bone=(74, 66, 64), claw=(30, 28, 30), eye=(255, 176, 40), teeth=(228, 218, 196),
@@ -449,13 +516,13 @@ def elemental(el):
     ox = lambda sg, L: 0 if sg > 0 else -L
     if el == 'fire':
         for lr, sg in sides:
-            part('brow_' + lr, 'head', (2.5 * sg, -4, -6), (0.15, -0.35 * sg, 0), [C(-0.5, -0.5, -6, 1, 1, 6, 'horn')])
+            part('fbrow_' + lr, 'head', (2.5 * sg, -4, -6), (0.15, -0.35 * sg, 0), [C(-0.5, -0.5, -6, 1, 1, 6, 'horn')])
         part('tail_flame', 'tail_tip', (0, 0, 6), cubes=[C(-0.5, -3, 0, 1, 6, 6, 'flame'), C(-2.5, -0.5, 0, 5, 1, 4, 'flame')])
         for k in range(3):
-            part('ember_%d' % k, 'body', (0, -8, -5 + k * 6), cubes=[C(-1, -5, -1, 2, 4, 2, 'flame')])
+            part('ember_%d' % k, 'body', (0, -6, -8 + k * 8), cubes=[C(-1, -5, -1, 2, 4, 2, 'flame')])
     elif el == 'ice':
-        for k, z in enumerate((-8, -4, 0, 4, 8)):
-            part('crystal_%d' % k, 'body', (0, -7, z), cubes=[C(-1, -7 - (k % 2) * 2, -1, 2, 7 + (k % 2) * 2, 2, 'crystal')])
+        for k, z in enumerate((-10, -5, 0, 5, 10)):
+            part('crystal_%d' % k, 'body', (0, -6, z), cubes=[C(-1, -7 - (k % 2) * 2, -1, 2, 7 + (k % 2) * 2, 2, 'crystal')])
         for lr, sg in sides:
             part('crown_' + lr, 'head', (2 * sg, -3, -2), (-0.3, 0, 0.3 * sg), [C(-0.5, -6, -0.5, 1, 6, 1, 'crystal')])
         part('tail_crystal', 'tail_tip', (0, 0, 6), cubes=[C(-1, -5, 0, 2, 10, 2, 'crystal'), C(-4, -1, 0, 8, 2, 2, 'crystal')])
@@ -466,13 +533,13 @@ def elemental(el):
             part('antler_%s_b' % lr, 'antler_' + lr, (0, 0, 3), (0.2, 0.7 * sg, 0), [C(-0.5, -0.5, 0, 1, 1, 5, 'horn')])
         part('bolt_a', 'tail_tip', (0, 0, 6), (0, 0.6, 0), [C(-0.5, -0.5, 0, 1, 1, 6, 'spike')])
         part('bolt_b', 'bolt_a', (0, 0, 6), (0, -1.2, 0), [C(-0.5, -0.5, 0, 1, 1, 6, 'spike')])
-        for k, z in enumerate((-9, -3, 3, 9)):
-            part('spark_%d' % k, 'body', (0, -7, z), cubes=[C(-0.5, -11, -0.5, 1, 11, 1, 'spike')])
+        for k, z in enumerate((-10, -4, 3, 9)):
+            part('spark_%d' % k, 'body', (0, -6, z), cubes=[C(-1, -6, -1, 2, 6, 2, 'spike')])
     else:
         for lr, sg in sides:
             part('ear_fin_' + lr, 'head', (3.5 * sg, -1, -2), (0, -0.6 * sg, 0), [C(ox(sg, 6), -3, -0.5, 6, 5, 1, 'membrane', dil=(0, 0, -0.25))])
-        part('dorsal_fin', 'body', (0, -6, -6), cubes=[C(-0.5, -8, 0, 1, 8, 14, 'membrane', dil=(-0.25, 0, 0))])
-        part('tail_fin', 'tail4', (0, 0, 4), cubes=[C(-0.5, -6, 0, 1, 12, 8, 'membrane', dil=(-0.25, 0, 0))])
+        part('dorsal_fin', 'body', (0, -6, -8), cubes=[C(-0.5, -8, 0, 1, 8, 14, 'membrane', dil=(-0.25, 0, 0))])
+        part('tail_fin', 'tail5', (0, 0, 2), cubes=[C(-0.5, -6, 0, 1, 12, 8, 'membrane', dil=(-0.25, 0, 0))])
     return P
 
 def pal(**kw):
@@ -507,6 +574,52 @@ def eggblock(name, base, spot):
             px[x, y] = c + (255,)
     img.save(os.path.join(TEX, 'block', name + '.png'))
 
+
+# =================================================================== ARMADURAS / FENIX
+MASKS = {
+ 'helmet': ["", "", "....########", "...##########", "..############", "..############", "..############", "..###......###", "..###......###", "..##........##"],
+ 'chestplate': ["", "..####....####", ".######..######", ".##############", ".##############", ".##############", "..############", "..############", "..############", "..############", "...##########"],
+ 'leggings': ["", "..############", "..############", "..############", "..####....####", "..####....####", "..####....####", "..####....####", "..####....####", "..###......###", "..###......###"],
+ 'boots': ["", "", "", "", "", "..###......###", "..###......###", "..###......###", ".####......####", ".####......####", ".####......####"],
+}
+
+def armor_icon(name, piece, pal):
+    rows = [r.ljust(16, '.') for r in MASKS[piece]] + ['.' * 16] * (16 - len(MASKS[piece]))
+    img = Image.new('RGBA', (16, 16), (0, 0, 0, 0)); px = img.load()
+    on = lambda x, y: 0 <= x < 16 and 0 <= y < 16 and rows[y][x] == '#'
+    for y in range(16):
+        for x in range(16):
+            if not on(x, y): continue
+            edge = not (on(x - 1, y) and on(x + 1, y) and on(x, y - 1) and on(x, y + 1))
+            c = pal['scale']
+            if edge: c = shade(c, 0.45)
+            elif not on(x, y - 1) or not on(x - 1, y): c = shade(c, 1.3)
+            elif (x + y) % 4 == 0: c = shade(c, 0.8)
+            elif (x * 3 + y) % 9 == 0: c = pal['ember']
+            px[x, y] = c + (255,)
+    img.save(os.path.join(TEX, 'item', name + '.png'))
+
+def equipment_textures(el, pal):
+    for layer in ('humanoid', 'humanoid_leggings'):
+        d = os.path.join(TEX, 'entity', 'equipment', layer); os.makedirs(d, exist_ok=True)
+        img = Image.new('RGBA', (64, 32)); px = img.load(); rng = random.Random(el + layer)
+        for y in range(32):
+            for x in range(64):
+                px[x, y] = pixel('scale', x, y, 64, 32, 'front', pal, rng, 7) + (255,)
+        img.save(os.path.join(d, el + '_dragon.png'))
+
+def feather_icon():
+    img = Image.new('RGBA', (16, 16), (0, 0, 0, 0)); px = img.load()
+    for k in range(13):
+        x, y = 2 + k, 13 - k
+        for w in range(-2, 3):
+            xx, yy = x + w, y
+            if 0 <= xx < 16 and 0 <= yy < 16 and abs(w) <= max(0, 2 - abs(k - 6) // 3):
+                t = k / 12
+                px[xx, yy] = mix((220, 50, 25), (255, 215, 70), t) + (255,)
+        px[x, y] = (255, 240, 170, 255)
+    img.save(os.path.join(TEX, 'item', 'phoenix_feather.png'))
+
 # =================================================================== ICONOS
 def egg(name, c1, c2):
     img = Image.new('RGBA', (16, 16), (0, 0, 0, 0)); px = img.load(); rng = random.Random(name)
@@ -540,3 +653,7 @@ if __name__ == '__main__':
         pl = ELPAL[el]
         egg(el + '_dragon_spawn_egg', pl['scale'], pl['ember']); scale_icon(el + '_dragon_scale', pl['scale'])
         eggblock(el + '_dragon_egg', pl['scale'], pl['ember'])
+        equipment_textures(el, pl)
+        for piece in ('helmet', 'chestplate', 'leggings', 'boots'):
+            armor_icon('%s_dragon_%s' % (el, piece), piece, pl)
+    eggblock('phoenix_egg', (222, 72, 30), (255, 210, 70)); feather_icon()

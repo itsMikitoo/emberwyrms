@@ -32,6 +32,7 @@ public class DragonRenderer extends MobEntityRenderer<DragonEntity, AshwingRende
         state.walkPhase = entity.anim.phaseAt(tickDelta);
         state.sitting = entity.isSitting();
         state.breathing = entity.isBreathing();
+        state.flying = entity.hasPassengers() && !entity.isOnGround();
     }
 
     @Override
