@@ -1,0 +1,10 @@
+{
+  "entity.emberwyrms.ashwing": "Alascua",
+  "entity.emberwyrms.phoenix": "Fénix",
+  "entity.emberwyrms.medusa": "Medusa",
+  "entity.emberwyrms.medusa.gaze": "La mirada de Medusa te petrifica",
+  "item.emberwyrms.emberscale": "Escama de brasa",
+  "item.emberwyrms.ashwing_spawn_egg": "Huevo generador de alascua",
+  "item.emberwyrms.phoenix_spawn_egg": "Huevo generador de Fénix",
+  "item.emberwyrms.medusa_spawn_egg": "Huevo generador de Medusa"
+}
