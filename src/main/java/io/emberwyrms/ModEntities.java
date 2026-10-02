@@ -30,10 +30,10 @@ public class ModEntities {
                     .dimensions(2.4f, 3.4f).maxTrackingRange(10).makeFireImmune());
     public static final EntityType<PhoenixEntity> PHOENIX = build("phoenix",
             EntityType.Builder.create(PhoenixEntity::new, SpawnGroup.CREATURE)
-                    .dimensions(1.0f, 1.0f).maxTrackingRange(10).makeFireImmune());
+                    .dimensions(1.2f, 2.0f).maxTrackingRange(10).makeFireImmune());
     public static final EntityType<MedusaEntity> MEDUSA = build("medusa",
             EntityType.Builder.create(MedusaEntity::new, SpawnGroup.MONSTER)
-                    .dimensions(0.9f, 1.8f).maxTrackingRange(8));
+                    .dimensions(0.8f, 2.0f).maxTrackingRange(8));
 
     public static final EntityType<AshDragonEntity> ASH_DRAGON = build("ash_dragon",
             EntityType.Builder.create(AshDragonEntity::new, SpawnGroup.MONSTER)

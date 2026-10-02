@@ -49,7 +49,7 @@ public class PhoenixEntity extends TameableEntity {
                 .add(EntityAttributes.FLYING_SPEED, 0.6)
                 .add(EntityAttributes.ATTACK_DAMAGE, 4.0)
                 .add(EntityAttributes.SAFE_FALL_DISTANCE, 64.0)
-                .add(EntityAttributes.SCALE, 2.4);
+                .add(EntityAttributes.SCALE, 1.8);
     }
 
     @Override
