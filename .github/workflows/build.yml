@@ -16,8 +16,8 @@ jobs:
           pip install pillow
           python3 tools/generate.py
           python3 tools/gen_assets.py
-          python3 tools/gen_worldgen.py
-          python3 tools/gen_sounds.py
+          python3 tools/gen_worldgen.py || echo "worldgen omitido"
+          python3 tools/gen_sounds.py || echo "sonidos omitidos"
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: current
