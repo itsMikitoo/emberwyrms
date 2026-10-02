@@ -68,3 +68,51 @@ if __name__ == '__main__':
     which = sys.argv[1] if len(sys.argv) > 1 else 'ashwing'
     parts = G.ashwing() if which == 'ashwing' else G.elemental(which)
     render(parts, which)
+
+
+# ---------------------------------------------------------------- vista 3D sombreada (para revisar modelos antes de entregarlos)
+def render3d(parts, tex_png, out, yaw=-38, pitch=22, S=5.0, size=(900, 700), bg=(150, 170, 200)):
+    import math
+    from PIL import Image, ImageDraw
+    pack_size, pos = G.pack(parts)
+    tex = Image.open(tex_png).convert('RGBA'); mat = world(parts)
+    ya, pa = math.radians(yaw), math.radians(pitch)
+    Ry = np.array([[math.cos(ya), 0, math.sin(ya)], [0, 1, 0], [-math.sin(ya), 0, math.cos(ya)]])
+    Rx = np.array([[1, 0, 0], [0, math.cos(pa), -math.sin(pa)], [0, math.sin(pa), math.cos(pa)]])
+    V = Rx @ Ry
+    light = np.array([-0.4, -0.8, -0.5]); light = light / np.linalg.norm(light)
+
+    def avg(u, v, w, h):
+        r = tex.crop((int(u), int(v), int(u + max(1, w)), int(v + max(1, h)))); px = [p for p in r.getdata() if p[3] > 20]
+        if not px: return None
+        return tuple(sum(p[i] for p in px) // len(px) for i in range(3))
+
+    faces = []
+    for p in parts:
+        R, T = mat(p)
+        for c in p.cubes:
+            ox, oy, oz = c['o']; w, h, d = c['s']; dl = c['dil'] or (0, 0, 0)
+            u, v = pos[G.ckey(c)]
+            lo = np.array([ox - dl[0], oy - dl[1], oz - dl[2]], float); hi = np.array([ox + w + dl[0], oy + h + dl[1], oz + d + dl[2]], float)
+            X0, Y0, Z0 = lo; X1, Y1, Z1 = hi
+            defs = [((0, 0, -1), [(X0, Y0, Z0), (X1, Y0, Z0), (X1, Y1, Z0), (X0, Y1, Z0)], (u + d, v + d, w, h)),
+                    ((0, 0, 1), [(X1, Y0, Z1), (X0, Y0, Z1), (X0, Y1, Z1), (X1, Y1, Z1)], (u + 2 * d + w, v + d, w, h)),
+                    ((1, 0, 0), [(X1, Y0, Z0), (X1, Y0, Z1), (X1, Y1, Z1), (X1, Y1, Z0)], (u + d + w, v + d, d, h)),
+                    ((-1, 0, 0), [(X0, Y0, Z1), (X0, Y0, Z0), (X0, Y1, Z0), (X0, Y1, Z1)], (u, v + d, d, h)),
+                    ((0, -1, 0), [(X0, Y0, Z1), (X1, Y0, Z1), (X1, Y0, Z0), (X0, Y0, Z0)], (u + d, v, w, d)),
+                    ((0, 1, 0), [(X0, Y1, Z0), (X1, Y1, Z0), (X1, Y1, Z1), (X0, Y1, Z1)], (u + d + w, v, w, d))]
+            for n, corners, rect in defs:
+                col = avg(*rect)
+                if col is None: continue
+                wn = V @ (R @ np.array(n, float))
+                if wn[2] > 0.02: continue          # cara de espaldas a la camara
+                pts = [V @ (R @ np.array(q, float) + T) for q in corners]
+                depth = sum(q[2] for q in pts) / 4
+                lit = 0.55 + 0.45 * max(0.0, float(np.dot(-wn, light)))
+                faces.append((depth, [(size[0] / 2 + q[0] * S, size[1] * 0.62 + q[1] * S) for q in pts],
+                              tuple(min(255, int(ch * lit)) for ch in col)))
+    faces.sort(key=lambda f: -f[0])
+    img = Image.new('RGB', size, bg); d = ImageDraw.Draw(img)
+    d.rectangle([0, size[1] * 0.62 + 24 * S * 0.35, size[0], size[1]], fill=(120, 130, 110))
+    for _, poly, col in faces: d.polygon(poly, fill=col, outline=tuple(int(c * 0.6) for c in col))
+    img.save(out)

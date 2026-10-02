@@ -37,7 +37,7 @@ public class ModEntities {
 
     public static final EntityType<AshDragonEntity> ASH_DRAGON = build("ash_dragon",
             EntityType.Builder.create(AshDragonEntity::new, SpawnGroup.MONSTER)
-                    .dimensions(2.4f, 4.0f).maxTrackingRange(16).makeFireImmune());
+                    .dimensions(2.4f, 3.2f).maxTrackingRange(16).makeFireImmune());
 
     public static final EntityType<DragonEntity> FIRE_DRAGON = dragon("fire_dragon", DragonElement.FIRE);
     public static final EntityType<DragonEntity> ICE_DRAGON = dragon("ice_dragon", DragonElement.ICE);
@@ -52,7 +52,7 @@ public class ModEntities {
     private static EntityType<DragonEntity> dragon(String name, DragonElement element) {
         EntityType.Builder<DragonEntity> b = EntityType.Builder.<DragonEntity>create(
                 (type, world) -> new DragonEntity(type, world, element), SpawnGroup.CREATURE)
-                .dimensions(2.8f, 4.2f).passengerAttachments(2.6f).maxTrackingRange(10);
+                .dimensions(2.8f, 3.6f).passengerAttachments(2.5f).maxTrackingRange(10);
         if (element == DragonElement.FIRE) b = b.makeFireImmune();
         return build(name, b);
     }

@@ -35,6 +35,11 @@ public class PhoenixEntity extends TameableEntity {
     public void tick() {
         super.tick();
         this.anim.update(this);
+        if (this.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld sw && this.age % 3 == 0) {
+            // estela de fuego: el fenix deja chispas y brasas a su paso
+            sw.spawnParticles(net.minecraft.particle.ParticleTypes.FLAME, this.getX(), this.getY() + 1.2, this.getZ(), 2, 0.9, 0.6, 0.9, 0.01);
+            if (this.age % 9 == 0) sw.spawnParticles(net.minecraft.particle.ParticleTypes.LAVA, this.getX(), this.getY() + 1.0, this.getZ(), 1, 0.6, 0.3, 0.6, 0.0);
+        }
     }
 
     public static DefaultAttributeContainer.Builder createAttributes() {
