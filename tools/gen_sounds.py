@@ -2,6 +2,27 @@
 """Sintetiza los sonidos del mod (rugidos, siseos, aleteo, chillidos) y los escribe como .ogg + sounds.json.
 Usa 'soundfile' (pip) o, si no esta, ffmpeg. Si no hay ninguno, no genera nada y el mod usa silencio."""
 import os, sys, json, subprocess, tempfile, wave
+
+def _ensure_deps():
+    try:
+        import numpy  # noqa: F401
+        return True
+    except ImportError:
+        pass
+    try:
+        subprocess.run([sys.executable, '-m', 'pip', 'install', '--quiet', '--user', 'numpy', 'soundfile'], check=False)
+        import importlib, site
+        importlib.invalidate_caches()
+        sys.path.append(site.getusersitepackages())
+        import numpy  # noqa: F401
+        return True
+    except Exception as e:
+        print('sonidos: no se pudo instalar numpy (%s)' % e)
+        return False
+
+if not _ensure_deps():
+    print('sonidos: OMITIDOS. El mod usara sonidos de Minecraft.')
+    sys.exit(0)
 import numpy as np
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -112,4 +133,8 @@ def main():
     json.dump(sj, open(OUT + 'sounds.json', 'w'), indent=2)
     print('sonidos: %d generados (%s)' % (len(done), ', '.join(sj)))
 
-main()
+try:
+    main()
+except Exception as e:
+    print('sonidos: OMITIDOS por un error (%s: %s)' % (type(e).__name__, e))
+    sys.exit(0)
