@@ -177,61 +177,69 @@ public class TideDragonModel extends EntityModel<AshwingRenderState> {
                 .uv(132, 80).cuboid(-1f, -5f, -5f, 2f, 2f, 3f),
                 ModelTransform.of(0f, 0f, -6f, 0.2f, 0f, 0f));
         ModelPartData neck6 = neck5.addChild("neck6", ModelPartBuilder.create()
-                .uv(52, 60).cuboid(-2.5f, -2.5f, -6f, 5f, 5f, 6f)
+                .uv(76, 60).cuboid(-2.5f, -2.5f, -6f, 5f, 5f, 6f)
                 .uv(132, 80).cuboid(-1f, -4.5f, -5f, 2f, 2f, 3f),
                 ModelTransform.of(0f, 0f, -6f, 0.2f, 0f, 0f));
         ModelPartData head = neck6.addChild("head", ModelPartBuilder.create()
                 .uv(124, 28).cuboid(-4.5f, -3.5f, -8f, 9f, 7f, 8f)
                 .uv(82, 80).cuboid(-5f, -4.5f, -6f, 10f, 1f, 4f)
                 .uv(28, 60).cuboid(-3f, -2f, -14f, 6f, 5f, 6f)
-                .uv(200, 60).cuboid(-2.5f, -1.5f, -19f, 5f, 4f, 5f)
-                .uv(172, 86).cuboid(-2f, -2f, -19.5f, 1f, 1f, 1f)
-                .uv(172, 86).cuboid(1f, -2f, -19.5f, 1f, 1f, 1f)
+                .uv(224, 60).cuboid(-2.5f, -1.5f, -19f, 5f, 4f, 5f)
+                .uv(180, 86).cuboid(-2f, -2f, -19.5f, 1f, 1f, 1f)
+                .uv(180, 86).cuboid(1f, -2f, -19.5f, 1f, 1f, 1f)
                 .uv(26, 86).cuboid(4.4f, -2.5f, -6f, 1f, 2f, 2f)
                 .uv(26, 86).cuboid(-5.4f, -2.5f, -6f, 1f, 2f, 2f)
-                .uv(198, 71).cuboid(4.5f, -1f, -3f, 1f, 3f, 4f)
-                .uv(198, 71).cuboid(-5.5f, -1f, -3f, 1f, 3f, 4f)
-                .uv(186, 71).cuboid(-0.5f, -6f, -6f, 1f, 2f, 5f)
-                .uv(176, 86).cuboid(-3f, 3f, -13f, 1f, 1f, 1f)
-                .uv(176, 86).cuboid(-3f, 3f, -10f, 1f, 1f, 1f)
-                .uv(176, 86).cuboid(2f, 3f, -13f, 1f, 1f, 1f)
-                .uv(176, 86).cuboid(2f, 3f, -10f, 1f, 1f, 1f)
-                .uv(176, 86).cuboid(-2.5f, 2.5f, -18f, 1f, 1f, 1f)
-                .uv(176, 86).cuboid(-2.5f, 2.5f, -16f, 1f, 1f, 1f)
-                .uv(176, 86).cuboid(1.5f, 2.5f, -18f, 1f, 1f, 1f)
-                .uv(176, 86).cuboid(1.5f, 2.5f, -16f, 1f, 1f, 1f),
+                .uv(218, 71).cuboid(4.5f, -1f, -3f, 1f, 3f, 4f)
+                .uv(218, 71).cuboid(-5.5f, -1f, -3f, 1f, 3f, 4f)
+                .uv(206, 71).cuboid(-0.5f, -6f, -6f, 1f, 2f, 5f)
+                .uv(102, 86).cuboid(-3f, 3f, -13f, 1f, 2f, 1f)
+                .uv(102, 86).cuboid(-3f, 3f, -11f, 1f, 2f, 1f)
+                .uv(102, 86).cuboid(-3f, 3f, -9f, 1f, 2f, 1f)
+                .uv(102, 86).cuboid(2f, 3f, -13f, 1f, 2f, 1f)
+                .uv(102, 86).cuboid(2f, 3f, -11f, 1f, 2f, 1f)
+                .uv(102, 86).cuboid(2f, 3f, -9f, 1f, 2f, 1f)
+                .uv(102, 86).cuboid(-2.5f, 2.5f, -18f, 1f, 2f, 1f)
+                .uv(102, 86).cuboid(-2.5f, 2.5f, -16f, 1f, 2f, 1f)
+                .uv(102, 86).cuboid(1.5f, 2.5f, -18f, 1f, 2f, 1f)
+                .uv(102, 86).cuboid(1.5f, 2.5f, -16f, 1f, 2f, 1f)
+                .uv(32, 86).cuboid(-2.5f, 2.5f, -19f, 1f, 3f, 1f)
+                .uv(32, 86).cuboid(1.5f, 2.5f, -19f, 1f, 3f, 1f),
                 ModelTransform.of(0f, 0f, -6f, 0.4f, 0f, 0f));
         ModelPartData jaw = head.addChild("jaw", ModelPartBuilder.create()
                 .uv(0, 28).cuboid(-3f, 0f, -17f, 6f, 2f, 16f)
-                .uv(176, 86).cuboid(-2.5f, -1f, -17f, 1f, 1f, 1f)
-                .uv(176, 86).cuboid(1.5f, -1f, -17f, 1f, 1f, 1f)
-                .uv(176, 86).cuboid(-2.5f, -1f, -12f, 1f, 1f, 1f)
-                .uv(176, 86).cuboid(1.5f, -1f, -12f, 1f, 1f, 1f)
-                .uv(98, 86).cuboid(-0.5f, 2f, -16f, 1f, 2f, 1f),
+                .uv(102, 86).cuboid(-2.5f, -2f, -16f, 1f, 2f, 1f)
+                .uv(102, 86).cuboid(-2.5f, -2f, -14f, 1f, 2f, 1f)
+                .uv(102, 86).cuboid(-2.5f, -2f, -12f, 1f, 2f, 1f)
+                .uv(102, 86).cuboid(-2.5f, -2f, -10f, 1f, 2f, 1f)
+                .uv(102, 86).cuboid(1.5f, -2f, -16f, 1f, 2f, 1f)
+                .uv(102, 86).cuboid(1.5f, -2f, -14f, 1f, 2f, 1f)
+                .uv(102, 86).cuboid(1.5f, -2f, -12f, 1f, 2f, 1f)
+                .uv(102, 86).cuboid(1.5f, -2f, -10f, 1f, 2f, 1f)
+                .uv(106, 86).cuboid(-0.5f, 2f, -16f, 1f, 2f, 1f),
                 ModelTransform.of(0f, 2.5f, -0.5f, 0f, 0f, 0f));
         ModelPartData hornL = head.addChild("horn_l", ModelPartBuilder.create()
-                .uv(180, 60).cuboid(-1.5f, -1.5f, 0f, 3f, 3f, 7f),
+                .uv(204, 60).cuboid(-1.5f, -1.5f, 0f, 3f, 3f, 7f),
                 ModelTransform.of(3.5f, -3.5f, -1f, 0.2f, 0.28f, 0f));
         ModelPartData hornL2 = hornL.addChild("horn_l_2", ModelPartBuilder.create()
-                .uv(0, 71).cuboid(-1f, -1f, 0f, 2f, 2f, 7f),
+                .uv(20, 71).cuboid(-1f, -1f, 0f, 2f, 2f, 7f),
                 ModelTransform.of(0f, 0f, 7f, 0.1f, 0.12f, 0f));
         ModelPartData hornL3 = hornL2.addChild("horn_l_3", ModelPartBuilder.create()
-                .uv(144, 71).cuboid(-0.5f, -0.5f, 0f, 1f, 1f, 6f),
+                .uv(164, 71).cuboid(-0.5f, -0.5f, 0f, 1f, 1f, 6f),
                 ModelTransform.of(0f, 0f, 7f, 0.2f, 0.05f, 0f));
         ModelPartData browL = head.addChild("brow_l", ModelPartBuilder.create()
-                .uv(158, 71).cuboid(-1f, -1f, -5f, 2f, 2f, 5f),
+                .uv(178, 71).cuboid(-1f, -1f, -5f, 2f, 2f, 5f),
                 ModelTransform.of(4f, -4.5f, -5f, 0.25f, -0.35f, 0f));
         ModelPartData hornR = head.addChild("horn_r", ModelPartBuilder.create()
-                .uv(180, 60).cuboid(-1.5f, -1.5f, 0f, 3f, 3f, 7f),
+                .uv(204, 60).cuboid(-1.5f, -1.5f, 0f, 3f, 3f, 7f),
                 ModelTransform.of(-3.5f, -3.5f, -1f, 0.2f, -0.28f, 0f));
         ModelPartData hornR2 = hornR.addChild("horn_r_2", ModelPartBuilder.create()
-                .uv(0, 71).cuboid(-1f, -1f, 0f, 2f, 2f, 7f),
+                .uv(20, 71).cuboid(-1f, -1f, 0f, 2f, 2f, 7f),
                 ModelTransform.of(0f, 0f, 7f, 0.1f, -0.12f, 0f));
         ModelPartData hornR3 = hornR2.addChild("horn_r_3", ModelPartBuilder.create()
-                .uv(144, 71).cuboid(-0.5f, -0.5f, 0f, 1f, 1f, 6f),
+                .uv(164, 71).cuboid(-0.5f, -0.5f, 0f, 1f, 1f, 6f),
                 ModelTransform.of(0f, 0f, 7f, 0.2f, -0.05f, 0f));
         ModelPartData browR = head.addChild("brow_r", ModelPartBuilder.create()
-                .uv(158, 71).cuboid(-1f, -1f, -5f, 2f, 2f, 5f),
+                .uv(178, 71).cuboid(-1f, -1f, -5f, 2f, 2f, 5f),
                 ModelTransform.of(-4f, -4.5f, -5f, 0.25f, 0.35f, 0f));
         ModelPartData tail1 = body.addChild("tail1", ModelPartBuilder.create()
                 .uv(44, 28).cuboid(-5f, -5f, 0f, 10f, 10f, 6f)
@@ -250,98 +258,98 @@ public class TideDragonModel extends EntityModel<AshwingRenderState> {
                 .uv(64, 80).cuboid(-1f, -6f, 1f, 2f, 3f, 3f),
                 ModelTransform.of(0f, 0f, 6f, 0f, 0f, 0f));
         ModelPartData tail5 = tail4.addChild("tail5", ModelPartBuilder.create()
-                .uv(28, 60).cuboid(-3f, -2.5f, 0f, 6f, 5f, 6f)
+                .uv(52, 60).cuboid(-3f, -2.5f, 0f, 6f, 5f, 6f)
                 .uv(64, 80).cuboid(-1f, -5.5f, 1f, 2f, 3f, 3f),
                 ModelTransform.of(0f, 0f, 6f, 0f, 0f, 0f));
         ModelPartData tail6 = tail5.addChild("tail6", ModelPartBuilder.create()
-                .uv(158, 60).cuboid(-2.5f, -2f, 0f, 5f, 4f, 6f)
+                .uv(182, 60).cuboid(-2.5f, -2f, 0f, 5f, 4f, 6f)
                 .uv(64, 80).cuboid(-1f, -5f, 1f, 2f, 3f, 3f),
                 ModelTransform.of(0f, 0f, 6f, 0f, 0f, 0f));
         ModelPartData tail7 = tail6.addChild("tail7", ModelPartBuilder.create()
-                .uv(220, 60).cuboid(-2f, -1.5f, 0f, 4f, 3f, 6f)
+                .uv(0, 71).cuboid(-2f, -1.5f, 0f, 4f, 3f, 6f)
                 .uv(64, 80).cuboid(-1f, -4.5f, 1f, 2f, 3f, 3f),
                 ModelTransform.of(0f, 0f, 6f, 0f, 0f, 0f));
         ModelPartData tail8 = tail7.addChild("tail8", ModelPartBuilder.create()
-                .uv(18, 71).cuboid(-1.5f, -1.5f, 0f, 3f, 3f, 6f)
+                .uv(38, 71).cuboid(-1.5f, -1.5f, 0f, 3f, 3f, 6f)
                 .uv(64, 80).cuboid(-1f, -4.5f, 1f, 2f, 3f, 3f),
                 ModelTransform.of(0f, 0f, 6f, 0f, 0f, 0f));
         ModelPartData tail9 = tail8.addChild("tail9", ModelPartBuilder.create()
-                .uv(116, 71).cuboid(-1f, -1f, 0f, 2f, 2f, 6f),
+                .uv(136, 71).cuboid(-1f, -1f, 0f, 2f, 2f, 6f),
                 ModelTransform.of(0f, 0f, 6f, 0f, 0f, 0f));
         ModelPartData tailTip = tail9.addChild("tail_tip", ModelPartBuilder.create()
                 .uv(108, 28).cuboid(-1f, -5f, 0f, 2f, 10f, 6f)
-                .uv(208, 71).cuboid(-5f, -1f, 1f, 10f, 2f, 4f),
+                .uv(228, 71).cuboid(-5f, -1f, 1f, 10f, 2f, 4f),
                 ModelTransform.of(0f, 0f, 6f, 0f, 0f, 0f));
         ModelPartData wingL = body.addChild("wing_l", ModelPartBuilder.create()
                 .uv(214, 46).cuboid(0f, -3f, -3f, 6f, 6f, 6f),
                 ModelTransform.of(6.5f, -6.5f, -9f, 0f, 0f, 0f));
         ModelPartData armL = wingL.addChild("arm_l", ModelPartBuilder.create()
-                .uv(128, 60).cuboid(0f, -2.5f, -2.5f, 10f, 5f, 5f)
+                .uv(152, 60).cuboid(0f, -2.5f, -2.5f, 10f, 5f, 5f)
                 .uv(188, 0).cuboid(0f, -0.5f, 3f, 10f, 1f, 18f, new Dilation(0f, -0.25f, 0f)),
                 ModelTransform.of(5f, 0f, 0f, 0f, 0f, 0f));
         ModelPartData foreL = armL.addChild("fore_l", ModelPartBuilder.create()
-                .uv(48, 71).cuboid(0f, -2f, -2f, 14f, 4f, 4f)
+                .uv(68, 71).cuboid(0f, -2f, -2f, 14f, 4f, 4f)
                 .uv(58, 46).cuboid(0f, -0.5f, 2f, 14f, 1f, 12f, new Dilation(0f, -0.25f, 0f))
-                .uv(172, 71).cuboid(0f, -1.5f, -5f, 2f, 2f, 5f),
+                .uv(192, 71).cuboid(0f, -1.5f, -5f, 2f, 2f, 5f),
                 ModelTransform.of(10f, 0f, 0f, 0f, 0f, 0f));
         ModelPartData f1L = foreL.addChild("f1_l", ModelPartBuilder.create()
                 .uv(150, 80).cuboid(0f, -1f, -1f, 26f, 2f, 2f)
-                .uv(32, 86).cuboid(0f, -0.5f, 1f, 8f, 1f, 2f, new Dilation(0f, -0.25f, 0f))
+                .uv(36, 86).cuboid(0f, -0.5f, 1f, 8f, 1f, 2f, new Dilation(0f, -0.25f, 0f))
                 .uv(0, 80).cuboid(8f, -0.5f, 1f, 8f, 1f, 5f, new Dilation(0f, -0.25f, 0f))
-                .uv(90, 60).cuboid(16f, -0.5f, 1f, 10f, 1f, 9f, new Dilation(0f, -0.25f, 0f)),
+                .uv(114, 60).cuboid(16f, -0.5f, 1f, 10f, 1f, 9f, new Dilation(0f, -0.25f, 0f)),
                 ModelTransform.of(14f, 0f, 0f, 0f, -0.3f, 0f));
         ModelPartData f2L = foreL.addChild("f2_l", ModelPartBuilder.create()
                 .uv(206, 80).cuboid(0f, -1f, -1f, 23f, 2f, 2f)
-                .uv(52, 86).cuboid(0f, -0.5f, 1f, 7f, 1f, 2f, new Dilation(0f, -0.25f, 0f))
+                .uv(56, 86).cuboid(0f, -0.5f, 1f, 7f, 1f, 2f, new Dilation(0f, -0.25f, 0f))
                 .uv(110, 80).cuboid(7f, -0.5f, 1f, 7f, 1f, 4f, new Dilation(0f, -0.25f, 0f))
-                .uv(84, 71).cuboid(14f, -0.5f, 1f, 9f, 1f, 7f, new Dilation(0f, -0.25f, 0f)),
+                .uv(104, 71).cuboid(14f, -0.5f, 1f, 9f, 1f, 7f, new Dilation(0f, -0.25f, 0f)),
                 ModelTransform.of(14f, 0f, 0f, 0f, -0.75f, 0f));
         ModelPartData f3L = foreL.addChild("f3_l", ModelPartBuilder.create()
-                .uv(102, 86).cuboid(0f, -0.5f, -0.5f, 19f, 1f, 1f)
-                .uv(70, 86).cuboid(0f, -0.5f, 0.5f, 6f, 1f, 2f, new Dilation(0f, -0.25f, 0f))
+                .uv(110, 86).cuboid(0f, -0.5f, -0.5f, 19f, 1f, 1f)
+                .uv(74, 86).cuboid(0f, -0.5f, 0.5f, 6f, 1f, 2f, new Dilation(0f, -0.25f, 0f))
                 .uv(0, 86).cuboid(6f, -0.5f, 0.5f, 6f, 1f, 3f, new Dilation(0f, -0.25f, 0f))
                 .uv(26, 80).cuboid(12f, -0.5f, 0.5f, 7f, 1f, 5f, new Dilation(0f, -0.25f, 0f)),
                 ModelTransform.of(14f, 0f, 0f, 0f, -1.15f, 0f));
         ModelPartData f4L = foreL.addChild("f4_l", ModelPartBuilder.create()
-                .uv(142, 86).cuboid(0f, -0.5f, -0.5f, 14f, 1f, 1f)
-                .uv(86, 86).cuboid(0f, -0.5f, 0.5f, 4f, 1f, 2f, new Dilation(0f, -0.25f, 0f))
-                .uv(86, 86).cuboid(4f, -0.5f, 0.5f, 4f, 1f, 2f, new Dilation(0f, -0.25f, 0f))
+                .uv(150, 86).cuboid(0f, -0.5f, -0.5f, 14f, 1f, 1f)
+                .uv(90, 86).cuboid(0f, -0.5f, 0.5f, 4f, 1f, 2f, new Dilation(0f, -0.25f, 0f))
+                .uv(90, 86).cuboid(4f, -0.5f, 0.5f, 4f, 1f, 2f, new Dilation(0f, -0.25f, 0f))
                 .uv(0, 86).cuboid(8f, -0.5f, 0.5f, 6f, 1f, 3f, new Dilation(0f, -0.25f, 0f)),
                 ModelTransform.of(14f, 0f, 0f, 0f, -1.5f, 0f));
         ModelPartData wingR = body.addChild("wing_r", ModelPartBuilder.create()
                 .uv(214, 46).cuboid(-6f, -3f, -3f, 6f, 6f, 6f),
                 ModelTransform.of(-6.5f, -6.5f, -9f, 0f, 0f, 0f));
         ModelPartData armR = wingR.addChild("arm_r", ModelPartBuilder.create()
-                .uv(128, 60).cuboid(-10f, -2.5f, -2.5f, 10f, 5f, 5f)
+                .uv(152, 60).cuboid(-10f, -2.5f, -2.5f, 10f, 5f, 5f)
                 .uv(188, 0).cuboid(-10f, -0.5f, 3f, 10f, 1f, 18f, new Dilation(0f, -0.25f, 0f)),
                 ModelTransform.of(-5f, 0f, 0f, 0f, 0f, 0f));
         ModelPartData foreR = armR.addChild("fore_r", ModelPartBuilder.create()
-                .uv(48, 71).cuboid(-14f, -2f, -2f, 14f, 4f, 4f)
+                .uv(68, 71).cuboid(-14f, -2f, -2f, 14f, 4f, 4f)
                 .uv(58, 46).cuboid(-14f, -0.5f, 2f, 14f, 1f, 12f, new Dilation(0f, -0.25f, 0f))
-                .uv(172, 71).cuboid(-2f, -1.5f, -5f, 2f, 2f, 5f),
+                .uv(192, 71).cuboid(-2f, -1.5f, -5f, 2f, 2f, 5f),
                 ModelTransform.of(-10f, 0f, 0f, 0f, 0f, 0f));
         ModelPartData f1R = foreR.addChild("f1_r", ModelPartBuilder.create()
                 .uv(150, 80).cuboid(-26f, -1f, -1f, 26f, 2f, 2f)
-                .uv(32, 86).cuboid(-8f, -0.5f, 1f, 8f, 1f, 2f, new Dilation(0f, -0.25f, 0f))
+                .uv(36, 86).cuboid(-8f, -0.5f, 1f, 8f, 1f, 2f, new Dilation(0f, -0.25f, 0f))
                 .uv(0, 80).cuboid(-16f, -0.5f, 1f, 8f, 1f, 5f, new Dilation(0f, -0.25f, 0f))
-                .uv(90, 60).cuboid(-26f, -0.5f, 1f, 10f, 1f, 9f, new Dilation(0f, -0.25f, 0f)),
+                .uv(114, 60).cuboid(-26f, -0.5f, 1f, 10f, 1f, 9f, new Dilation(0f, -0.25f, 0f)),
                 ModelTransform.of(-14f, 0f, 0f, 0f, 0.3f, 0f));
         ModelPartData f2R = foreR.addChild("f2_r", ModelPartBuilder.create()
                 .uv(206, 80).cuboid(-23f, -1f, -1f, 23f, 2f, 2f)
-                .uv(52, 86).cuboid(-7f, -0.5f, 1f, 7f, 1f, 2f, new Dilation(0f, -0.25f, 0f))
+                .uv(56, 86).cuboid(-7f, -0.5f, 1f, 7f, 1f, 2f, new Dilation(0f, -0.25f, 0f))
                 .uv(110, 80).cuboid(-14f, -0.5f, 1f, 7f, 1f, 4f, new Dilation(0f, -0.25f, 0f))
-                .uv(84, 71).cuboid(-23f, -0.5f, 1f, 9f, 1f, 7f, new Dilation(0f, -0.25f, 0f)),
+                .uv(104, 71).cuboid(-23f, -0.5f, 1f, 9f, 1f, 7f, new Dilation(0f, -0.25f, 0f)),
                 ModelTransform.of(-14f, 0f, 0f, 0f, 0.75f, 0f));
         ModelPartData f3R = foreR.addChild("f3_r", ModelPartBuilder.create()
-                .uv(102, 86).cuboid(-19f, -0.5f, -0.5f, 19f, 1f, 1f)
-                .uv(70, 86).cuboid(-6f, -0.5f, 0.5f, 6f, 1f, 2f, new Dilation(0f, -0.25f, 0f))
+                .uv(110, 86).cuboid(-19f, -0.5f, -0.5f, 19f, 1f, 1f)
+                .uv(74, 86).cuboid(-6f, -0.5f, 0.5f, 6f, 1f, 2f, new Dilation(0f, -0.25f, 0f))
                 .uv(0, 86).cuboid(-12f, -0.5f, 0.5f, 6f, 1f, 3f, new Dilation(0f, -0.25f, 0f))
                 .uv(26, 80).cuboid(-19f, -0.5f, 0.5f, 7f, 1f, 5f, new Dilation(0f, -0.25f, 0f)),
                 ModelTransform.of(-14f, 0f, 0f, 0f, 1.15f, 0f));
         ModelPartData f4R = foreR.addChild("f4_r", ModelPartBuilder.create()
-                .uv(142, 86).cuboid(-14f, -0.5f, -0.5f, 14f, 1f, 1f)
-                .uv(86, 86).cuboid(-4f, -0.5f, 0.5f, 4f, 1f, 2f, new Dilation(0f, -0.25f, 0f))
-                .uv(86, 86).cuboid(-8f, -0.5f, 0.5f, 4f, 1f, 2f, new Dilation(0f, -0.25f, 0f))
+                .uv(150, 86).cuboid(-14f, -0.5f, -0.5f, 14f, 1f, 1f)
+                .uv(90, 86).cuboid(-4f, -0.5f, 0.5f, 4f, 1f, 2f, new Dilation(0f, -0.25f, 0f))
+                .uv(90, 86).cuboid(-8f, -0.5f, 0.5f, 4f, 1f, 2f, new Dilation(0f, -0.25f, 0f))
                 .uv(0, 86).cuboid(-14f, -0.5f, 0.5f, 6f, 1f, 3f, new Dilation(0f, -0.25f, 0f)),
                 ModelTransform.of(-14f, 0f, 0f, 0f, 1.5f, 0f));
         ModelPartData legFl = body.addChild("leg_fl", ModelPartBuilder.create()
@@ -349,10 +357,10 @@ public class TideDragonModel extends EntityModel<AshwingRenderState> {
                 .uv(188, 28).cuboid(-3.5f, -3.5f, -4f, 7f, 7f, 8f),
                 ModelTransform.of(6.5f, 6.1928f, -10f, 0.4f, 0f, 0f));
         ModelPartData shinFl = legFl.addChild("shin_fl", ModelPartBuilder.create()
-                .uv(74, 60).cuboid(-2f, -1f, -2f, 4f, 7f, 4f),
+                .uv(98, 60).cuboid(-2f, -1f, -2f, 4f, 7f, 4f),
                 ModelTransform.of(0f, 5.5f, 0f, -0.85f, 0f, 0f));
         ModelPartData metaFl = shinFl.addChild("meta_fl", ModelPartBuilder.create()
-                .uv(132, 71).cuboid(-1.5f, -0.5f, -1.5f, 3f, 5f, 3f),
+                .uv(152, 71).cuboid(-1.5f, -0.5f, -1.5f, 3f, 5f, 3f),
                 ModelTransform.of(0f, 5.5f, 0f, 0.55f, 0f, 0f));
         ModelPartData footFl = metaFl.addChild("foot_fl", ModelPartBuilder.create()
                 .uv(0, 60).cuboid(-2.5f, -1f, -7f, 5f, 2f, 9f)
@@ -365,10 +373,10 @@ public class TideDragonModel extends EntityModel<AshwingRenderState> {
                 .uv(188, 28).cuboid(-3.5f, -3.5f, -4f, 7f, 7f, 8f),
                 ModelTransform.of(-6.5f, 6.1928f, -10f, 0.4f, 0f, 0f));
         ModelPartData shinFr = legFr.addChild("shin_fr", ModelPartBuilder.create()
-                .uv(74, 60).cuboid(-2f, -1f, -2f, 4f, 7f, 4f),
+                .uv(98, 60).cuboid(-2f, -1f, -2f, 4f, 7f, 4f),
                 ModelTransform.of(0f, 5.5f, 0f, -0.85f, 0f, 0f));
         ModelPartData metaFr = shinFr.addChild("meta_fr", ModelPartBuilder.create()
-                .uv(132, 71).cuboid(-1.5f, -0.5f, -1.5f, 3f, 5f, 3f),
+                .uv(152, 71).cuboid(-1.5f, -0.5f, -1.5f, 3f, 5f, 3f),
                 ModelTransform.of(0f, 5.5f, 0f, 0.55f, 0f, 0f));
         ModelPartData footFr = metaFr.addChild("foot_fr", ModelPartBuilder.create()
                 .uv(0, 60).cuboid(-2.5f, -1f, -7f, 5f, 2f, 9f)
@@ -384,7 +392,7 @@ public class TideDragonModel extends EntityModel<AshwingRenderState> {
                 .uv(238, 46).cuboid(-2f, -1f, -2f, 4f, 8f, 4f),
                 ModelTransform.of(0f, 6f, 0f, 1.2f, 0f, 0f));
         ModelPartData metaBl = shinBl.addChild("meta_bl", ModelPartBuilder.create()
-                .uv(36, 71).cuboid(-1.5f, -0.5f, -1.5f, 3f, 6f, 3f),
+                .uv(56, 71).cuboid(-1.5f, -0.5f, -1.5f, 3f, 6f, 3f),
                 ModelTransform.of(0f, 7f, 0f, -0.7f, 0f, 0f));
         ModelPartData footBl = metaBl.addChild("foot_bl", ModelPartBuilder.create()
                 .uv(0, 60).cuboid(-2.5f, -1f, -7f, 5f, 2f, 9f)
@@ -400,7 +408,7 @@ public class TideDragonModel extends EntityModel<AshwingRenderState> {
                 .uv(238, 46).cuboid(-2f, -1f, -2f, 4f, 8f, 4f),
                 ModelTransform.of(0f, 6f, 0f, 1.2f, 0f, 0f));
         ModelPartData metaBr = shinBr.addChild("meta_br", ModelPartBuilder.create()
-                .uv(36, 71).cuboid(-1.5f, -0.5f, -1.5f, 3f, 6f, 3f),
+                .uv(56, 71).cuboid(-1.5f, -0.5f, -1.5f, 3f, 6f, 3f),
                 ModelTransform.of(0f, 7f, 0f, -0.7f, 0f, 0f));
         ModelPartData footBr = metaBr.addChild("foot_br", ModelPartBuilder.create()
                 .uv(0, 60).cuboid(-2.5f, -1f, -7f, 5f, 2f, 9f)
@@ -461,7 +469,7 @@ public class TideDragonModel extends EntityModel<AshwingRenderState> {
         }
         this.head.yaw = yawLook * 0.4f;
         this.head.pitch = 0.4f + pitchLook * 0.5f + breathe * 0.02f - (s.breathing ? 0.35f : 0f);
-        this.jaw.pitch = s.breathing ? 0.85f : 0.05f + (breathe + 1f) * 0.04f;
+        this.jaw.pitch = s.breathing ? 0.85f : 0.2f + (breathe + 1f) * 0.03f;
 
         ModelPart[] tail = {tail1, tail2, tail3, tail4, tail5, tail6, tail7, tail8, tail9};
         float walkSway = cos(f) * 0.06f * amp;

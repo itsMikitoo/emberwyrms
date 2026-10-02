@@ -14,6 +14,7 @@ public class EmberwyrmsClient implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntities.ASHWING, AshwingRenderer::new);
         EntityRendererRegistry.register(ModEntities.PHOENIX, PhoenixRenderer::new);
         EntityRendererRegistry.register(ModEntities.MEDUSA, MedusaRenderer::new);
+        EntityRendererRegistry.register(ModEntities.ASH_DRAGON, AshBossRenderer::new);
         EntityModelLayerRegistry.registerModelLayer(ModModelLayers.FIRE_DRAGON, FireDragonModel::getTexturedModelData);
         EntityRendererRegistry.register(ModEntities.FIRE_DRAGON, ctx -> new DragonRenderer(ctx, ModModelLayers.FIRE_DRAGON, FireDragonModel::new, "fire_dragon"));
         EntityModelLayerRegistry.registerModelLayer(ModModelLayers.ICE_DRAGON, IceDragonModel::getTexturedModelData);

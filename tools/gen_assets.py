@@ -59,5 +59,23 @@ for el, (e_es, e_en) in EL.items():
           'key': {'S': 'emberwyrms:%s_dragon_scale' % el}, 'pattern': pattern, 'result': {'id': 'emberwyrms:' + n, 'count': 1}})
         en['item.emberwyrms.' + n] = f'{e_en} Dragon {p_en}'
         es['item.emberwyrms.' + n] = f'{p_es} de dragón de {e_es}'
+# ---- Fase 4: cuerno, corazon de ceniza, jefe, biomas
+for it in ('dragon_horn', 'ash_heart', 'ash_dragon_spawn_egg'): item_def(it); flat(it)
+w(D + 'recipe/dragon_horn.json', {'type': 'minecraft:crafting_shapeless', 'category': 'misc',
+  'ingredients': ['emberwyrms:%s_dragon_scale' % e for e in EL], 'result': {'id': 'emberwyrms:dragon_horn', 'count': 1}})
+w(D + 'loot_table/entities/ash_dragon.json', {'type': 'minecraft:entity', 'pools': [
+  {'rolls': 1, 'entries': [{'type': 'minecraft:item', 'name': 'emberwyrms:ash_heart'}]},
+  {'rolls': 1, 'entries': [{'type': 'minecraft:item', 'name': 'emberwyrms:emberscale', 'functions': count(6, 12)}]},
+  {'rolls': 1, 'entries': [{'type': 'minecraft:item', 'name': 'emberwyrms:fire_dragon_scale', 'functions': count(2, 5)}]}]})
+en.update({"entity.emberwyrms.ash_dragon": "Ash Dragon", "item.emberwyrms.ash_dragon_spawn_egg": "Ash Dragon Spawn Egg",
+           "item.emberwyrms.ash_heart": "Ashen Heart", "item.emberwyrms.dragon_horn": "Dragon Horn",
+           "item.emberwyrms.dragon_horn.unavailable": "The Dragonlands are not available",
+           "biome.emberwyrms.volcanic_peaks": "Volcanic Peaks", "biome.emberwyrms.glacial_spires": "Glacial Spires",
+           "biome.emberwyrms.storm_plateau": "Storm Plateau", "biome.emberwyrms.tide_marsh": "Tide Marsh"})
+es.update({"entity.emberwyrms.ash_dragon": "Dragón de Ceniza", "item.emberwyrms.ash_dragon_spawn_egg": "Huevo generador de Dragón de Ceniza",
+           "item.emberwyrms.ash_heart": "Corazón ceniciento", "item.emberwyrms.dragon_horn": "Cuerno del Dragón",
+           "item.emberwyrms.dragon_horn.unavailable": "La Tierra de Dragones no está disponible",
+           "biome.emberwyrms.volcanic_peaks": "Picos Volcánicos", "biome.emberwyrms.glacial_spires": "Agujas Glaciales",
+           "biome.emberwyrms.storm_plateau": "Meseta de la Tormenta", "biome.emberwyrms.tide_marsh": "Marisma de la Marea"})
 w(A + 'lang/en_us.json', en); w(A + 'lang/es_es.json', es)
 print('assets ok:', len(en), 'textos')

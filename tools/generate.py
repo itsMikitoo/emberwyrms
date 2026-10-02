@@ -74,13 +74,15 @@ def pixel(mat, i, j, w, h, face, pal, rng, seed):
         else: c = belly
         c = shade(c, 0.9 + 0.2 * vnoise(i + seed, j, 5, seed))
         row = j // 3; xx = i + (row % 2) * 2
-        lx, ly = xx % 3, j % 3
-        cell = ((xx // 3) * 31 + row * 17 + seed) % 101
-        c = shade(c, 0.94 + (cell % 7) * 0.02 + n)
-        if lx == 2 or ly == 2: c = shade(c, 0.84)
-        elif lx == 0 and ly == 0: c = shade(c, 1.12)
-        if 'ember' in pal and cell % 31 == 0 and (lx == 2 or ly == 2): c = mix(c, pal['ember'], 0.55)
+        lx, ly = xx % 4, j % 3
+        cell = ((xx // 4) * 31 + row * 17 + seed) % 101
+        c = shade(c, 0.92 + (cell % 9) * 0.02 + n)
+        if lx == 3 or ly == 2: c = shade(c, 0.76)
+        elif lx == 0 and ly == 0: c = shade(c, 1.18)
+        elif ly == 0: c = shade(c, 1.08)
+        if 'ember' in pal and cell % 31 == 0 and (lx == 3 or ly == 2): c = mix(c, pal['ember'], 0.55)
         style, mk = pal.get('mark_style'), pal.get('mark')
+        if style == 'cracks' and mk and abs(vnoise(i, j, 6, seed + 3) - 0.5) < 0.04: c = mix(c, mk, 0.92)
         if style and face in SIDES and mk:
             if style == 'stripe':
                 if ((i + int(3 * vnoise(j, 3, 6, seed))) % 9) in (0, 1) and j < h * 0.75: c = mix(c, mk, 0.55)
@@ -109,7 +111,11 @@ def pixel(mat, i, j, w, h, face, pal, rng, seed):
         return shade(c, 0.85) if (mat == 'gold' and (i + j) % 4 == 0) else c
     if mat == 'spike':
         return shade(base, 1.15 - 0.5 * j / max(1, h - 1) + n)
-    if mat == 'eye': return base
+    if mat == 'eye':
+        if w >= 2 and i == w // 2: return shade(base, 0.12)
+        return base
+    if mat == 'mouth':
+        return shade(base, 0.85 + 0.3 * vnoise(i, j, 3, seed))
     if mat == 'crystal':
         facet = (i * 3 + j * 2) % 5
         return shade(base, 0.82 + facet * 0.08 + n)
@@ -205,6 +211,7 @@ def build(cls, state, parts, pal, tex, anim):
     paint(parts, size, pos, pal, tex)
     emit(cls, state, None, parts, size, pos, anim)
     print('%s: %d piezas, textura %dx%d' % (cls, len(parts), size, size))
+    return parts, size, pos
 
 # =================================================================== DRAGON V2 (realista)
 HIND_L, HIND_A = (6.0, 7.0, 4.5), (-0.65, 0.55, -0.15)
@@ -236,18 +243,19 @@ def ashwing():
         part('neck%d' % (k + 1), prev, (0, -5.5, -12) if k == 0 else (0, 0, -6), (NECK_REL[k], 0, 0), [
             C(-w / 2, -w / 2, -6, w, w, 6, 'scale', {'bottom': 'plate'}), C(-1, -w / 2 - 2, -5, 2, 2, 3, 'spike')])
         prev = 'neck%d' % (k + 1)
-    teeth = [C(x, 3, z, 1, 1, 1, 'teeth') for x in (-3, 2) for z in (-13, -10)] + \
-            [C(x, 2.5, z, 1, 1, 1, 'teeth') for x in (-2.5, 1.5) for z in (-18, -16)]
+    teeth = [C(x, 3, z, 1, 2, 1, 'teeth') for x in (-3, 2) for z in (-13, -11, -9)] + \
+            [C(x, 2.5, z, 1, 2, 1, 'teeth') for x in (-2.5, 1.5) for z in (-18, -16)] + \
+            [C(-2.5, 2.5, -19, 1, 3, 1, 'teeth'), C(1.5, 2.5, -19, 1, 3, 1, 'teeth')]
     part('head', 'neck6', (0, 0, -6), (0.4, 0, 0), [
         C(-4.5, -3.5, -8, 9, 7, 8, 'scale'), C(-5, -4.5, -6, 10, 1, 4, 'scale'),
-        C(-3, -2, -14, 6, 5, 6, 'scale', {'bottom': 'plate'}), C(-2.5, -1.5, -19, 5, 4, 5, 'scale'),
+        C(-3, -2, -14, 6, 5, 6, 'scale', {'bottom': 'mouth'}), C(-2.5, -1.5, -19, 5, 4, 5, 'scale', {'bottom': 'mouth'}),
         C(-2, -2, -19.5, 1, 1, 1, 'claw'), C(1, -2, -19.5, 1, 1, 1, 'claw'),
         C(4.4, -2.5, -6, 1, 2, 2, 'eye'), C(-5.4, -2.5, -6, 1, 2, 2, 'eye'),
         C(4.5, -1, -3, 1, 3, 4, 'spike'), C(-5.5, -1, -3, 1, 3, 4, 'spike'),
         C(-0.5, -6, -6, 1, 2, 5, 'spike')] + teeth)
-    part('jaw', 'head', (0, 2.5, -0.5), cubes=[C(-3, 0, -17, 6, 2, 16, 'scale', {'top': 'plate'}),
-        C(-2.5, -1, -17, 1, 1, 1, 'teeth'), C(1.5, -1, -17, 1, 1, 1, 'teeth'), C(-2.5, -1, -12, 1, 1, 1, 'teeth'),
-        C(1.5, -1, -12, 1, 1, 1, 'teeth'), C(-0.5, 2, -16, 1, 2, 1, 'spike')])
+    part('jaw', 'head', (0, 2.5, -0.5), cubes=[C(-3, 0, -17, 6, 2, 16, 'scale', {'top': 'mouth'}),
+        *[C(x, -2, z, 1, 2, 1, 'teeth') for x in (-2.5, 1.5) for z in (-16, -14, -12, -10)],
+        C(-0.5, 2, -16, 1, 2, 1, 'spike')])
     for lr, sg in sides:
         part('horn_' + lr, 'head', (3.5 * sg, -3.5, -1), (0.2, 0.28 * sg, 0), [C(-1.5, -1.5, 0, 3, 3, 7, 'horn')])
         part('horn_%s_2' % lr, 'horn_' + lr, (0, 0, 7), (0.1, 0.12 * sg, 0), [C(-1, -1, 0, 2, 2, 7, 'horn')])
@@ -324,7 +332,7 @@ ASH_ANIM = r'''    private static final float HA1 = @HA1@, HR2 = @HR2@, HR3 = @H
         }
         this.head.yaw = yawLook * 0.4f;
         this.head.pitch = 0.4f + pitchLook * 0.5f + breathe * 0.02f - (s.breathing ? 0.35f : 0f);
-        this.jaw.pitch = s.breathing ? 0.85f : 0.05f + (breathe + 1f) * 0.04f;
+        this.jaw.pitch = s.breathing ? 0.85f : 0.2f + (breathe + 1f) * 0.03f;
 
         ModelPart[] tail = {tail1, tail2, tail3, tail4, tail5, tail6, tail7, tail8, tail9};
         float walkSway = cos(f) * 0.06f * amp;
@@ -373,7 +381,7 @@ ASH_ANIM = (ASH_ANIM.replace('@HA1@', fm(HIND_A[0])).replace('@HR2@', fm(HIND_A[
 
 ASH_PAL = dict(scale=(48, 44, 50), belly=(150, 118, 92), plate=(150, 118, 92), horn=(196, 180, 154), membrane=(96, 38, 34),
                bone=(70, 62, 62), claw=(28, 26, 28), eye=(255, 176, 40), teeth=(228, 218, 196),
-               spike=(84, 70, 70), ember=(236, 96, 26), mark=(30, 26, 30), mark_style='stripe')
+               spike=(84, 70, 70), ember=(236, 96, 26), mark=(30, 26, 30), mark_style='stripe', mouth=(150, 40, 52), fur=(122, 112, 108))
 
 # =================================================================== PHOENIX
 def phoenix():
@@ -582,6 +590,10 @@ ELPAL = {
                 claw=(28, 58, 68), eye=(190, 255, 230), teeth=(240, 248, 240), spike=(58, 170, 192), ember=(150, 240, 230),
                 mark=(120, 214, 220), mark_style='spots'),
 }
+for _k, _f in (('fire', (78, 66, 68)), ('ice', (236, 240, 244)), ('storm', (158, 160, 180)), ('tide', (206, 228, 218))):
+    ELPAL[_k]['fur'] = _f
+ASH_BOSS_PAL = pal(scale=(30, 28, 32), belly=(86, 58, 46), plate=(86, 58, 46), horn=(70, 60, 56), membrane=(66, 22, 20), bone=(44, 38, 40),
+                   spike=(40, 34, 36), eye=(255, 96, 30), ember=(255, 120, 30), mark=(255, 112, 24), mark_style='cracks', mouth=(190, 60, 30))
 CAP = {'fire': 'Fire', 'ice': 'Ice', 'storm': 'Storm', 'tide': 'Tide'}
 
 def scale_icon(name, c):
@@ -615,51 +627,82 @@ TRIM = (236, 196, 76)
 
 def armor_icon(name, piece, pal):
     rows = [r.ljust(16, '.') for r in MASKS[piece]] + ['.' * 16] * (16 - len(MASKS[piece]))
-    img = Image.new('RGBA', (16, 16), (0, 0, 0, 0)); px = img.load()
+    img = Image.new('RGBA', (16, 16), (0, 0, 0, 0)); px = img.load(); rng = random.Random(name)
     on = lambda x, y: 0 <= x < 16 and 0 <= y < 16 and rows[y][x] == '#'
-    base, belly = pal['scale'], pal.get('belly', pal['scale'])
+    base, belly, fur = pal['scale'], pal.get('belly', pal['scale']), pal.get('fur', (220, 220, 220))
     for y in range(16):
         for x in range(16):
             if not on(x, y): continue
             edge = not (on(x - 1, y) and on(x + 1, y) and on(x, y - 1) and on(x, y + 1))
-            c = mix(shade(base, 1.25), shade(base, 0.8), min(1, y / 12))
-            if y % 3 == 0: c = mix(c, belly, 0.12)
-            if edge: c = shade(c, 0.45)
-            elif not on(x, y - 1) or not on(x - 1, y): c = shade(c, 1.35)
-            if piece == 'chestplate' and not edge and ((x in (7, 8) and y >= 3) or y == 2): c = TRIM
-            if piece == 'leggings' and not edge and y in (1, 6): c = TRIM
-            if piece == 'boots' and not edge and y == 5: c = TRIM
-            if piece == 'helmet' and not edge and y in (7, 8) and 4 <= x <= 11: c = shade(base, 0.25)
+            c = mix(shade(base, 1.3), shade(base, 0.75), min(1, y / 12))
+            if y % 3 == 0: c = mix(c, belly, 0.14)
+            if edge: c = shade(c, 0.42)
+            elif not on(x, y - 1) or not on(x - 1, y): c = shade(c, 1.4)
+            furry = (piece == 'chestplate' and y == 2) or (piece == 'helmet' and y == 3) or (piece == 'boots' and y == 5) or (piece == 'leggings' and y == 1)
+            if furry and not edge: c = shade(fur, 0.8 + 0.3 * rng.random())
+            if piece == 'chestplate' and not edge and x in (7, 8) and y in (5, 6): c = pal['eye']
+            if piece == 'helmet' and not edge and y in (7, 8) and 4 <= x <= 11: c = shade(base, 0.2)
             if piece == 'helmet' and not edge and y == 7 and x in (5, 10): c = pal['eye']
-            if piece == 'helmet' and not edge and y == 3: c = TRIM
+            if piece == 'helmet' and y == 2 and x in (4, 11): c = pal.get('horn', TRIM)
             px[x, y] = c + (255,)
     img.save(os.path.join(TEX, 'item', name + '.png'))
 
 def armor_face(px, x0, y0, w, h, part, face, pal, rng, seed):
     base, belly = pal['scale'], pal.get('belly', pal['scale'])
-    dark = shade(base, 0.38)
+    fur, horn, eye = pal.get('fur', (220, 220, 220)), pal.get('horn', (210, 200, 180)), pal['eye']
+    dark = shade(base, 0.34)
+    fz = lambda: shade(fur, 0.78 + 0.32 * rng.random())
     for j in range(h):
         for i in range(w):
             t = j / max(1, h - 1)
-            c = mix(shade(base, 1.2), shade(base, 0.82), t)
-            c = shade(c, 0.93 + 0.14 * vnoise(i + seed, j, 4, seed))
-            off = (j // 2) % 2
-            if (i + off) % 3 == 2: c = shade(c, 0.9)
-            elif (i + off) % 3 == 0 and j % 2 == 0: c = shade(c, 1.08)
-            if j % 4 == 3: c = shade(c, 0.78)
-            if face in SIDES and part in ('body', 'leg') and j >= h - 2: c = mix(c, belly, 0.35)
-            trim = False
-            if part == 'head' and face in SIDES and j == 0: trim = True
-            if part == 'head' and face == 'front' and j in (3, 4) and 1 <= i <= w - 2: c = shade(base, 0.2)
-            if part == 'head' and face == 'front' and j == 3 and i in (2, w - 3): c = pal['eye']
-            if part == 'head' and face == 'top' and i in (w // 2 - 1, w // 2): trim = True
-            if part == 'body' and face in ('front', 'back') and i in (w // 2 - 1, w // 2): trim = True
-            if part == 'body' and face in SIDES and j == 0: trim = True
-            if part == 'body' and face == 'front' and j in (4, 5) and i in (w // 2 - 1, w // 2): c = pal['eye']
-            if part == 'arm' and face in SIDES and j in (0, 1, 7): trim = True
-            if part == 'leg' and face in SIDES and j in (0, 5, h - 3): trim = True
-            if trim: c = mix(TRIM, shade(TRIM, 0.7), 0.4 * (i % 2))
-            elif w > 2 and h > 2 and (i in (0, w - 1) or j in (0, h - 1)): c = dark
+            c = mix(shade(base, 1.28), shade(base, 0.76), t)
+            c = shade(c, 0.92 + 0.16 * vnoise(i + seed, j, 3, seed))
+            if (j % 4 == 3) or ((i + (j // 4) * 2) % 4 == 3): c = shade(c, 0.74)
+            elif j % 4 == 0: c = shade(c, 1.13)
+            f = False
+            S = face in SIDES
+            if part == 'head':
+                if face == 'front':
+                    if j == 0 or (j == 1 and rng.random() < 0.6) or (i in (0, w - 1) and 1 <= j <= 5): f = True
+                    elif j in (3, 4, 5) and 2 <= i <= w - 3: c = shade(base, 0.14)
+                    if j == 4 and i in (2, w - 3): c = eye
+                    if j >= 6 and i in (w // 2 - 1, w // 2): c = shade(base, 1.45)
+                elif face in ('left', 'right'):
+                    if j == 0 or (j == 1 and rng.random() < 0.4): f = True
+                    elif (j == 2 and 2 <= i <= 6) or (j == 3 and 4 <= i <= 7): c = shade(horn, 0.9 + 0.2 * rng.random())
+                elif face == 'back':
+                    if j == 0: f = True
+                    if i in (w // 2 - 1, w // 2) and j % 2 == 0: c = shade(base, 1.5)
+                elif face == 'top':
+                    if (1 <= i <= 2 or w - 3 <= i <= w - 2) and 1 <= j <= 3: c = shade(horn, 0.8 + 0.3 * (j == 1))
+                    elif i in (w // 2 - 1, w // 2): c = shade(base, 1.5)
+            elif part == 'body':
+                if S and (j == 0 or (j == 1 and rng.random() < 0.55)): f = True
+                if face == 'front':
+                    if i in (w // 2 - 1, w // 2) and 2 <= j <= 8: c = mix(c, belly, 0.5)
+                    if j in (4, 5) and i in (w // 2 - 1, w // 2): c = eye
+                    if j == 9: c = mix(TRIM, shade(TRIM, 0.7), 0.4 * (i % 2))
+                    if j >= 10: c = shade(c, 0.85)
+                if face == 'back':
+                    if i in (w // 2 - 1, w // 2) and j % 2 == 0: c = shade(base, 1.55)
+                    if j == 9: c = mix(TRIM, shade(TRIM, 0.7), 0.4 * (i % 2))
+                if face in ('left', 'right') and j == 9: c = mix(TRIM, shade(TRIM, 0.7), 0.4 * (i % 2))
+            elif part == 'arm':
+                if S:
+                    if j == 0 and i % 2 == 0: c = shade(horn, 1.0)
+                    elif j in (1, 2): c = shade(c, 1.2)
+                    if j >= 9 and (j == 9 or rng.random() < 0.5 + 0.2 * (11 - j)): f = True
+                    if j == 3: c = shade(c, 0.7)
+                elif face == 'top': c = shade(base, 1.3)
+            elif part == 'leg':
+                if S:
+                    if 5 <= j <= 6 and 1 <= i <= w - 2: c = shade(c, 1.25)
+                    if j == 5 and i in (1, 2): c = shade(horn, 1.0)
+                    if j == 8 or (j == 9 and rng.random() < 0.5): f = True
+                    if j >= 10: c = shade(c, 0.6)
+                    if j == 11: c = shade(base, 0.25)
+            if f: c = fz()
+            elif w > 2 and h > 2 and (i in (0, w - 1) or j in (0, h - 1)) and not (part == 'head' and face == 'front' and j in (3, 4, 5)): c = dark
             px[x0 + i, y0 + j] = c + (255,)
 
 def equipment_textures(el, pal):
@@ -686,6 +729,41 @@ def feather_icon():
         px[x, y] = (255, 240, 170, 255)
     img.save(os.path.join(TEX, 'item', 'phoenix_feather.png'))
 
+def horn_icon():
+    img = Image.new('RGBA', (16, 16), (0, 0, 0, 0)); px = img.load()
+    pts = []
+    for k in range(60):
+        t = k / 59.0
+        pts.append((2 + 11.5 * t, 12.5 - 9.0 * math.sin(t * 1.35), 2.2 * (1 - t) + 0.6))
+    for y in range(16):
+        for x in range(16):
+            for (cx, cy, r) in pts:
+                d = math.hypot(x - cx, y - cy)
+                if d <= r:
+                    tt = (cx - 2) / 11.5
+                    c = mix((236, 226, 200), (92, 78, 66), tt ** 1.5)
+                    if d > r - 0.7: c = shade(c, 0.55)
+                    elif cy - y > r * 0.35: c = shade(c, 1.15)
+                    if tt < 0.14: c = (232, 190, 70) if d <= r - 0.7 else (140, 100, 30)
+                    px[x, y] = c + (255,)
+                    break
+    img.save(os.path.join(TEX, 'item', 'dragon_horn.png'))
+
+def heart_icon():
+    rows = ["..##...##..", ".####.####.", "###########", "###########", ".#########.", "..#######..", "...#####...", "....###....", ".....#....."]
+    img = Image.new('RGBA', (16, 16), (0, 0, 0, 0)); px = img.load()
+    for y, r in enumerate(rows):
+        for x, ch in enumerate(r):
+            if ch != '#': continue
+            xx, yy = x + 2, y + 3
+            edge = x in (0, 10) or y == len(rows) - 1 or r[max(0, x - 1)] == '.' or r[min(10, x + 1)] == '.'
+            c = (40, 34, 38) if edge else (68, 54, 56)
+            d = math.hypot(x - 5, y - 3)
+            if not edge and d < 3.6: c = mix((255, 150, 40), (200, 50, 20), d / 3.6)
+            if not edge and (x, y) in ((2, 1), (3, 1), (1, 2)): c = (255, 210, 120)
+            px[xx, yy] = c + (255,)
+    img.save(os.path.join(TEX, 'item', 'ash_heart.png'))
+
 # =================================================================== ICONOS
 def egg(name, c1, c2):
     img = Image.new('RGBA', (16, 16), (0, 0, 0, 0)); px = img.load(); rng = random.Random(name)
@@ -708,7 +786,8 @@ def emberscale():
     img.save(os.path.join(TEX, 'item', 'emberscale.png'))
 
 if __name__ == '__main__':
-    build('AshwingModel', 'AshwingRenderState', ashwing(), ASH_PAL, 'ashwing', ASH_ANIM)
+    _p, _sz, _pos = build('AshwingModel', 'AshwingRenderState', ashwing(), ASH_PAL, 'ashwing', ASH_ANIM)
+    paint(_p, _sz, _pos, ASH_BOSS_PAL, 'ash_dragon')
     build('PhoenixModel', 'PhoenixRenderState', phoenix(), PHX_PAL, 'phoenix', PHX_ANIM)
     mp = medusa()
     build('MedusaModel', 'MedusaRenderState', mp, MED_PAL, 'medusa', med_anim())
@@ -723,3 +802,4 @@ if __name__ == '__main__':
         for piece in ('helmet', 'chestplate', 'leggings', 'boots'):
             armor_icon('%s_dragon_%s' % (el, piece), piece, pl)
     eggblock('phoenix_egg', (222, 72, 30), (255, 210, 70)); feather_icon()
+    horn_icon(); heart_icon(); egg('ash_dragon_spawn_egg', (30, 28, 32), (255, 112, 24))

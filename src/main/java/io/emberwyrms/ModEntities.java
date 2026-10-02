@@ -1,5 +1,6 @@
 package io.emberwyrms;
 
+import io.emberwyrms.entity.AshDragonEntity;
 import io.emberwyrms.entity.AshwingEntity;
 import io.emberwyrms.entity.DragonElement;
 import io.emberwyrms.entity.DragonEntity;
@@ -34,6 +35,10 @@ public class ModEntities {
             EntityType.Builder.create(MedusaEntity::new, SpawnGroup.MONSTER)
                     .dimensions(0.9f, 1.8f).maxTrackingRange(8));
 
+    public static final EntityType<AshDragonEntity> ASH_DRAGON = build("ash_dragon",
+            EntityType.Builder.create(AshDragonEntity::new, SpawnGroup.MONSTER)
+                    .dimensions(2.0f, 2.4f).maxTrackingRange(16).makeFireImmune());
+
     public static final EntityType<DragonEntity> FIRE_DRAGON = dragon("fire_dragon", DragonElement.FIRE);
     public static final EntityType<DragonEntity> ICE_DRAGON = dragon("ice_dragon", DragonElement.ICE);
     public static final EntityType<DragonEntity> STORM_DRAGON = dragon("storm_dragon", DragonElement.STORM);
@@ -65,6 +70,9 @@ public class ModEntities {
         FabricDefaultAttributeRegistry.register(ASHWING, AshwingEntity.createAttributes());
         FabricDefaultAttributeRegistry.register(PHOENIX, PhoenixEntity.createAttributes());
         FabricDefaultAttributeRegistry.register(MEDUSA, MedusaEntity.createAttributes());
+        FabricDefaultAttributeRegistry.register(ASH_DRAGON, AshDragonEntity.createAttributes());
+        SpawnRestriction.register(ASH_DRAGON, SpawnLocationTypes.ON_GROUND,
+                Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, MobEntity::canMobSpawn);
         for (DragonElement el : DragonElement.values()) {
             FabricDefaultAttributeRegistry.register(of(el), DragonEntity.createAttributes());
             SpawnRestriction.register(of(el), SpawnLocationTypes.ON_GROUND,
@@ -96,5 +104,16 @@ public class ModEntities {
         BiomeModifications.addSpawn(BiomeSelectors.tag(BiomeTags.IS_BEACH), SpawnGroup.CREATURE, TIDE_DRAGON, 4, 1, 1);
         BiomeModifications.addSpawn(BiomeSelectors.includeByKey(BiomeKeys.SWAMP, BiomeKeys.MANGROVE_SWAMP),
                 SpawnGroup.CREATURE, TIDE_DRAGON, 4, 1, 1);
+
+        // Tierra de Dragones (biomas definidos en data/ al compilar)
+        BiomeModifications.addSpawn(BiomeSelectors.includeByKey(ModBiomes.VOLCANIC_PEAKS), SpawnGroup.CREATURE, FIRE_DRAGON, 12, 1, 1);
+        BiomeModifications.addSpawn(BiomeSelectors.includeByKey(ModBiomes.VOLCANIC_PEAKS), SpawnGroup.CREATURE, ASHWING, 8, 1, 1);
+        BiomeModifications.addSpawn(BiomeSelectors.includeByKey(ModBiomes.VOLCANIC_PEAKS), SpawnGroup.CREATURE, PHOENIX, 6, 1, 2);
+        BiomeModifications.addSpawn(BiomeSelectors.includeByKey(ModBiomes.VOLCANIC_PEAKS), SpawnGroup.MONSTER, ASH_DRAGON, 1, 1, 1);
+        BiomeModifications.addSpawn(BiomeSelectors.includeByKey(ModBiomes.GLACIAL_SPIRES), SpawnGroup.CREATURE, ICE_DRAGON, 12, 1, 1);
+        BiomeModifications.addSpawn(BiomeSelectors.includeByKey(ModBiomes.STORM_PLATEAU), SpawnGroup.CREATURE, STORM_DRAGON, 12, 1, 1);
+        BiomeModifications.addSpawn(BiomeSelectors.includeByKey(ModBiomes.STORM_PLATEAU), SpawnGroup.CREATURE, PHOENIX, 5, 1, 2);
+        BiomeModifications.addSpawn(BiomeSelectors.includeByKey(ModBiomes.TIDE_MARSH), SpawnGroup.CREATURE, TIDE_DRAGON, 12, 1, 1);
+        BiomeModifications.addSpawn(BiomeSelectors.includeByKey(ModBiomes.TIDE_MARSH), SpawnGroup.MONSTER, MEDUSA, 4, 1, 1);
     }
 }

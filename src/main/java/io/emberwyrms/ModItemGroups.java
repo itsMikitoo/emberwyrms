@@ -17,6 +17,9 @@ public class ModItemGroups {
                     .icon(() -> new ItemStack(ModItems.FIRE_DRAGON_EGG))
                     .displayName(Text.translatable("itemGroup.emberwyrms"))
                     .entries((context, entries) -> {
+                        entries.add(ModItems.DRAGON_HORN);
+                        entries.add(ModItems.ASH_DRAGON_SPAWN_EGG);
+                        entries.add(ModItems.ASH_HEART);
                         entries.add(ModItems.ASHWING_SPAWN_EGG);
                         entries.add(ModItems.FIRE_DRAGON_SPAWN_EGG);
                         entries.add(ModItems.ICE_DRAGON_SPAWN_EGG);
