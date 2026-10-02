@@ -281,7 +281,7 @@ public class DragonEntity extends TameableEntity {
                     player.sendMessage(this.info(), true);
                 } else if (this.getStage() <= 2) {
                     this.setSitting(false);
-                    this.startRiding(player, true);
+                    this.startRiding(player, true, true);
                 } else {
                     this.setSitting(false);
                     player.startRiding(this);
