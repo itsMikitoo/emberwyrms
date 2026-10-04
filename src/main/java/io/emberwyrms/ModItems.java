@@ -1,6 +1,7 @@
 package io.emberwyrms;
 
 import java.util.function.Function;
+import io.emberwyrms.item.BestiaryItem;
 import io.emberwyrms.item.DragonHornItem;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.block.Block;
@@ -24,6 +25,7 @@ public class ModItems {
     public static final Item FROST_FISH = reg("frost_fish", Item::new);
     public static final Item STORM_JERKY = reg("storm_jerky", Item::new);
     public static final Item TIDE_CATCH = reg("tide_catch", Item::new);
+    public static final Item BESTIARY = reg("bestiary", s -> new BestiaryItem(s.maxCount(1)));
     public static final Item DRAGON_HORN = reg("dragon_horn", s -> new DragonHornItem(s.maxCount(1)));
     public static final Item ASH_HEART = reg("ash_heart", Item::new);
     public static final Item ASH_DRAGON_SPAWN_EGG = reg("ash_dragon_spawn_egg", s -> new SpawnEggItem(s.spawnEgg(ModEntities.ASH_DRAGON)));

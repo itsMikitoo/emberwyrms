@@ -6,12 +6,12 @@ import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.entity.MobEntityRenderer;
 import net.minecraft.util.Identifier;
 
-/** Dragon de Ceniza: usa el modelo del dragon base (escalado x1.7 por atributo) con textura de grietas de lava. */
-public class AshBossRenderer extends MobEntityRenderer<AshDragonEntity, AshwingRenderState, AshwingModel> {
+/** Dragon de Ceniza: modelo propio convertido de "The Warrior" (ver CREDITS.md). */
+public class AshBossRenderer extends MobEntityRenderer<AshDragonEntity, AshwingRenderState, AshBossModel> {
     private static final Identifier TEXTURE = Emberwyrms.id("textures/entity/ash_dragon.png");
 
     public AshBossRenderer(EntityRendererFactory.Context ctx) {
-        super(ctx, new AshwingModel(ctx.getPart(ModModelLayers.ASHWING)), 1.4f);
+        super(ctx, new AshBossModel(ctx.getPart(ModModelLayers.ASH_BOSS)), 2.5f);
     }
 
     @Override

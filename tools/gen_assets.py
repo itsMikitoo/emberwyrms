@@ -103,5 +103,115 @@ w(D + 'worldgen/placed_feature/dragon_village.json', {'feature': 'emberwyrms:dra
   {'type': 'minecraft:rarity_filter', 'chance': 160}, {'type': 'minecraft:in_square'},
   {'type': 'minecraft:heightmap', 'heightmap': 'WORLD_SURFACE_WG'}, {'type': 'minecraft:biome'}]})
 
+# ---- Bestiario: objeto, receta y todos los textos de las paginas
+item_def('bestiary'); flat('bestiary')
+w(D + 'recipe/bestiary.json', {'type': 'minecraft:crafting_shapeless', 'category': 'misc',
+  'ingredients': ['minecraft:book', 'emberwyrms:emberscale'], 'result': {'id': 'emberwyrms:bestiary', 'count': 1}})
+en['item.emberwyrms.bestiary'] = 'Emberwyrms Bestiary'; es['item.emberwyrms.bestiary'] = 'Bestiario de Emberwyrms'
+PAGES_ES = {
+ 'intro': ('Bestiario de Emberwyrms', [
+   'Los dragones nacen de un huevo y crecen en 5 etapas (1 día de Minecraft = 20 minutos).',
+   'Etapa 1 (0-24 días): cría débil, sin aliento. Etapa 2 (25-49): ya usa su aliento elemental.',
+   'Etapa 3 (50-74): se puede montar y volar. Etapa 4 (75-99): ya se reproduce.',
+   'Etapa 5 (100+): el máximo poder. Alcanza su tamaño máximo a los 125 días.',
+   'Cada dragón solo come su comida propia; la carne cruda únicamente lo cura.',
+   'Los dragones salvajes son hostiles. Para tener uno, críalo desde el huevo o domestícalo con su comida.',
+   'Pasa la página para conocer a cada criatura.']),
+ 'fire': ('Dragón de Fuego', [
+   'Elemento: fuego. Cuerpo de netherrack, alas enormes y cola larga.',
+   'Hábitat: Picos Volcánicos, desiertos y badlands.',
+   'Come: filete de ceniza (carne de vaca cocida + polvo de blaze).',
+   'Aliento: abrasa y prende fuego a sus presas. Es inmune al fuego.',
+   'Con sus escamas se fabrica una armadura que da inmunidad al fuego.']),
+ 'ice': ('Dragón de Hielo', [
+   'Elemento: hielo. Un wyvern de alas inmensas y una cola larguísima.',
+   'Hábitat: Agujas Glaciales y picos nevados.',
+   'Come: pescado glacial (bacalao + hielo compacto).',
+   'Aliento: congela y ralentiza. Su armadura de escamas da resistencia al daño.']),
+ 'storm': ('Dragón Eléctrico', [
+   'Elemento: rayo. Un dragón de huesos que ronda las tormentas.',
+   'Hábitat: Meseta de la Tormenta y colinas ventosas.',
+   'Come: cecina de tormenta (cordero cocido + redstone).',
+   'Aliento: descarga y puede invocar relámpagos. Su armadura de escamas da velocidad.']),
+ 'tide': ('Dragón de Agua', [
+   'Elemento: agua. Una serpiente larga y sinuosa de crines azules.',
+   'Hábitat: Marisma de la Marea, ríos, playas y pantanos.',
+   'Come: captura de marea (salmón + alga).',
+   'Aliento: empuja y debilita. Su armadura de escamas permite respirar bajo el agua.']),
+ 'ash': ('Dragón de Ceniza (jefe)', [
+   'Jefe legendario. Cuerpo oscuro surcado de venas de lava.',
+   'Habita los Picos Volcánicos. Es muy raro: prepárate bien antes de enfrentarlo.',
+   '400 de vida. Escupe fuego a distancia y da un pisotón que lanza por los aires.',
+   'Al bajar de la mitad de su vida se enfurece y se vuelve más rápido.',
+   'Suelta el Corazón ceniciento: añade 25 días de edad a un dragón domado.']),
+ 'medusa': ('Medusa', [
+   'Gorgona de pelo de serpientes: mitad mujer, mitad serpiente.',
+   'Hábitat: Marisma de la Marea y, de noche, el mundo normal.',
+   'Si la miras de frente, su mirada te ralentiza y te cansa.',
+   'Cuidado con sus serpientes: atacan desde todos los lados.']),
+ 'credits': ('Créditos', [
+   'Modelos 3D (Sketchfab), convertidos para este mod:',
+   'Dragón de Fuego: «Minecraft Netherrack Dragon».',
+   'Dragón de Hielo: «Minecraft Ice Wyvern».',
+   'Dragón Eléctrico: «Skeleton Dragon».',
+   'Dragón de Agua: «Serpent Blue Dragon».',
+   'Dragón de Ceniza: «The Warrior».',
+   'Medusa: «Gorgon» (licencia CC BY).',
+   'Autores y licencias completos: archivo CREDITS.md del mod.'])}
+PAGES_EN = {
+ 'intro': ('Emberwyrms Bestiary', [
+   'Dragons hatch from eggs and grow through 5 stages (1 Minecraft day = 20 minutes).',
+   'Stage 1 (0-24 days): weak hatchling, no breath. Stage 2 (25-49): starts using its elemental breath.',
+   'Stage 3 (50-74): can be ridden and flown. Stage 4 (75-99): can breed.',
+   'Stage 5 (100+): full power. Reaches its maximum size at 125 days.',
+   'Each dragon only eats its own food; raw meat only heals it.',
+   'Wild dragons are hostile. To own one, raise it from an egg or tame it with its food.',
+   'Turn the page to meet each creature.']),
+ 'fire': ('Fire Dragon', [
+   'Element: fire. Netherrack body, huge wings and a long tail.',
+   'Habitat: Volcanic Peaks, deserts and badlands.',
+   'Eats: cinder steak (cooked beef + blaze powder).',
+   'Breath: scorches and ignites its prey. Immune to fire.',
+   'Its scales make an armor that grants fire immunity.']),
+ 'ice': ('Ice Dragon', [
+   'Element: ice. A wyvern with immense wings and a very long tail.',
+   'Habitat: Glacial Spires and snowy peaks.',
+   'Eats: frost fish (cod + packed ice).',
+   'Breath: freezes and slows. Its scale armor grants damage resistance.']),
+ 'storm': ('Lightning Dragon', [
+   'Element: lightning. A bone dragon that haunts the storms.',
+   'Habitat: Storm Plateau and windswept hills.',
+   'Eats: storm jerky (cooked mutton + redstone).',
+   'Breath: shocks and can call down lightning. Its scale armor grants speed.']),
+ 'tide': ('Water Dragon', [
+   'Element: water. A long, winding serpent with a blue mane.',
+   'Habitat: Tide Marsh, rivers, beaches and swamps.',
+   'Eats: tide catch (salmon + kelp).',
+   'Breath: pushes and weakens. Its scale armor lets you breathe underwater.']),
+ 'ash': ('Ash Dragon (boss)', [
+   'Legendary boss. A dark body streaked with veins of lava.',
+   'Lives in the Volcanic Peaks. Very rare: prepare well before facing it.',
+   '400 health. Spits fire from afar and stomps, hurling you into the air.',
+   'Below half health it enrages and becomes faster.',
+   'Drops the Ashen Heart: adds 25 days of age to a tamed dragon.']),
+ 'medusa': ('Medusa', [
+   'A gorgon with snake hair: half woman, half serpent.',
+   'Habitat: Tide Marsh and, at night, the overworld.',
+   'If you look at her head-on, her gaze slows and tires you.',
+   'Beware her snakes: they strike from every side.']),
+ 'credits': ('Credits', [
+   '3D models (Sketchfab), converted for this mod:',
+   'Fire Dragon: "Minecraft Netherrack Dragon".',
+   'Ice Dragon: "Minecraft Ice Wyvern".',
+   'Lightning Dragon: "Skeleton Dragon".',
+   'Water Dragon: "Serpent Blue Dragon".',
+   'Ash Dragon: "The Warrior".',
+   'Medusa: "Gorgon" (CC BY license).',
+   'Full authors and licenses: see the mod CREDITS.md file.'])}
+for table, pages in ((es, PAGES_ES), (en, PAGES_EN)):
+    for key, (title, lines) in pages.items():
+        table['bestiary.emberwyrms.%s.title' % key] = title
+        for i, ln in enumerate(lines, 1): table['bestiary.emberwyrms.%s.l%d' % (key, i)] = ln
+
 w(A + 'lang/en_us.json', en); w(A + 'lang/es_es.json', es)
 print('assets ok:', len(en), 'textos')

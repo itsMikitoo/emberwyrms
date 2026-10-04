@@ -8,12 +8,14 @@ import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 public class EmberwyrmsClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
+        io.emberwyrms.item.BestiaryItem.open = () -> net.minecraft.client.MinecraftClient.getInstance().setScreen(new BestiaryScreen());
         EntityModelLayerRegistry.registerModelLayer(ModModelLayers.ASHWING, AshwingModel::getTexturedModelData);
         EntityModelLayerRegistry.registerModelLayer(ModModelLayers.PHOENIX, PhoenixModel::getTexturedModelData);
         EntityModelLayerRegistry.registerModelLayer(ModModelLayers.MEDUSA, MedusaModel::getTexturedModelData);
         EntityRendererRegistry.register(ModEntities.ASHWING, AshwingRenderer::new);
         EntityRendererRegistry.register(ModEntities.PHOENIX, PhoenixRenderer::new);
         EntityRendererRegistry.register(ModEntities.MEDUSA, MedusaRenderer::new);
+        EntityModelLayerRegistry.registerModelLayer(ModModelLayers.ASH_BOSS, AshBossModel::getTexturedModelData);
         EntityRendererRegistry.register(ModEntities.ASH_DRAGON, AshBossRenderer::new);
         EntityModelLayerRegistry.registerModelLayer(ModModelLayers.FIRE_DRAGON, FireDragonModel::getTexturedModelData);
         EntityRendererRegistry.register(ModEntities.FIRE_DRAGON, ctx -> new DragonRenderer(ctx, ModModelLayers.FIRE_DRAGON, FireDragonModel::new, "fire_dragon"));

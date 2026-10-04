@@ -53,7 +53,7 @@ public class AshDragonEntity extends HostileEntity {
                 .add(EntityAttributes.ARMOR, 10.0)
                 .add(EntityAttributes.KNOCKBACK_RESISTANCE, 1.0)
                 .add(EntityAttributes.STEP_HEIGHT, 2.0)
-                .add(EntityAttributes.SCALE, 1.9);
+                .add(EntityAttributes.SCALE, 0.45);
     }
 
     @Override

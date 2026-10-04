@@ -46,8 +46,6 @@ public class DragonEntity extends TameableEntity {
     public static final String INIT_TAG = "ew_init";
     public static final float TICKS_PER_DAY = 24000f;
     public static final float MAX_DAYS = 125f;
-    private static final double MIN_SCALE = 0.2;
-    private static final double SCALE_RANGE = 1.2;   // tamaño adulto = 1.4
     private static final TrackedData<Boolean> BREATHING =
             DataTracker.registerData(DragonEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 
@@ -73,14 +71,21 @@ public class DragonEntity extends TameableEntity {
     }
 
     // ------------------------------------------------------------------ edad y etapas
-    public static double scaleForDays(float days) {
-        return MIN_SCALE + SCALE_RANGE * Math.min(days, MAX_DAYS) / MAX_DAYS;
+    /** Proporcion de la cria respecto al adulto (la escala minima del juego es 0.0625, asi que se sube en los modelos muy pequeños). */
+    private double babyRatio() {
+        return Math.max(0.14, 0.07 / this.element.adultScale);
+    }
+
+    public double scaleForDays(float days) {
+        double r = this.babyRatio();
+        return this.element.adultScale * (r + (1.0 - r) * Math.min(days, MAX_DAYS) / MAX_DAYS);
     }
 
     public float getAgeDays() {
         EntityAttributeInstance inst = this.getAttributeInstance(EntityAttributes.SCALE);
-        double s = inst == null ? 1.0 : inst.getBaseValue();
-        return (float) ((s - MIN_SCALE) / SCALE_RANGE * MAX_DAYS);
+        double s = inst == null ? this.element.adultScale : inst.getBaseValue();
+        double r = this.babyRatio();
+        return (float) (((s / this.element.adultScale) - r) / (1.0 - r) * MAX_DAYS);
     }
 
     public void setAgeDays(float days) {

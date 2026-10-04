@@ -116,3 +116,72 @@ def render3d(parts, tex_png, out, yaw=-38, pitch=22, S=5.0, size=(900, 700), bg=
     d.rectangle([0, size[1] * 0.62 + 24 * S * 0.35, size[0], size[1]], fill=(120, 130, 110))
     for _, poly, col in faces: d.polygon(poly, fill=col, outline=tuple(int(c * 0.6) for c in col))
     img.save(out)
+
+
+# ---------------------------------------------------------------- render 3D CON TEXTURAS (para comprobar la conversion y para las fotos del bestiario)
+def render_tex(parts, atlas_png, out, yaw=-35, pitch=18, S=4.0, size=(900, 640), bg=(0, 0, 0, 0), center=None, pose=None):
+    import math
+    from PIL import Image, ImageDraw
+    pack_size, pos = G.pack(parts)
+    atlas = Image.open(atlas_png).convert('RGBA'); mat = world(parts)
+    ya, pa = math.radians(yaw), math.radians(pitch)
+    Ry = np.array([[math.cos(ya), 0, math.sin(ya)], [0, 1, 0], [-math.sin(ya), 0, math.cos(ya)]])
+    Rx = np.array([[1, 0, 0], [0, math.cos(pa), -math.sin(pa)], [0, math.sin(pa), math.cos(pa)]])
+    V = Rx @ Ry
+    light = np.array([-0.4, -0.8, -0.5]); light = light / np.linalg.norm(light)
+    faces = []
+    allp = []
+    for p in parts:
+        R, T = mat(p)
+        for c in p.cubes:
+            ox, oy, oz = c['o']; w, h, d = c['s']; dl = c['dil'] or (0, 0, 0)
+            u, v = pos[G.ckey(c)]
+            x0, y0, z0 = ox - dl[0], oy - dl[1], oz - dl[2]; Sx, Sy, Sz = w + 2 * dl[0], h + 2 * dl[1], d + 2 * dl[2]
+            def P(s, t, face):
+                if face == 'front': q = (x0 + s * Sx, y0 + t * Sy, z0)
+                elif face == 'back': q = (x0 + (1 - s) * Sx, y0 + t * Sy, z0 + Sz)
+                elif face == 'left': q = (x0 + Sx, y0 + t * Sy, z0 + s * Sz)
+                elif face == 'right': q = (x0, y0 + t * Sy, z0 + (1 - s) * Sz)
+                elif face == 'top': q = (x0 + s * Sx, y0, z0 + (1 - t) * Sz)
+                else: q = (x0 + s * Sx, y0 + Sy, z0 + t * Sz)
+                return V @ (R @ np.array(q, float) + T)
+            rects = {'top': (u + d, v, w, d, (0, -1, 0)), 'bottom': (u + d + w, v, w, d, (0, 1, 0)), 'right': (u, v + d, d, h, (-1, 0, 0)),
+                     'front': (u + d, v + d, w, h, (0, 0, -1)), 'left': (u + d + w, v + d, d, h, (1, 0, 0)), 'back': (u + 2 * d + w, v + d, w, h, (0, 0, 1))}
+            for face, (fx, fy, fw, fh, n) in rects.items():
+                if fw <= 0 or fh <= 0: continue
+                wn = V @ (R @ np.array(n, float))
+                if wn[2] > 0.02: continue
+                c00, c10, c01, c11 = P(0, 0, face), P(1, 0, face), P(0, 1, face), P(1, 1, face)
+                faces.append(((c00[2] + c11[2]) / 2, face, (fx, fy, fw, fh), c00, c10, c01, c11, max(0.0, float(np.dot(-wn, light)))))
+                allp += [c00, c10, c01, c11]
+    allp = np.array(allp)
+    if center is None: center = ((allp[:, 0].min() + allp[:, 0].max()) / 2, (allp[:, 1].min() + allp[:, 1].max()) / 2)
+    ox_, oy_ = size[0] / 2 - center[0] * S, size[1] / 2 - center[1] * S
+    img = Image.new('RGBA', size, bg)
+    faces.sort(key=lambda f: -f[0])
+    for depth, face, (fx, fy, fw, fh), c00, c10, c01, c11, lit in faces:
+        scr = lambda q: (ox_ + q[0] * S, oy_ + q[1] * S)
+        p00, p10, p01, p11 = scr(c00), scr(c10), scr(c01), scr(c11)
+        xs = [p[0] for p in (p00, p10, p01, p11)]; ys = [p[1] for p in (p00, p10, p01, p11)]
+        bx0, by0, bx1, by1 = int(min(xs)) - 1, int(min(ys)) - 1, int(max(xs)) + 2, int(max(ys)) + 2
+        bw, bh = bx1 - bx0, by1 - by0
+        if bw <= 0 or bh <= 0 or bw > 3000 or bh > 3000: continue
+        a = np.array([[(p10[0] - p00[0]) / fw, (p01[0] - p00[0]) / fh], [(p10[1] - p00[1]) / fw, (p01[1] - p00[1]) / fh]])
+        det = np.linalg.det(a)
+        if abs(det) < 1e-9: continue
+        inv = np.linalg.inv(a); off = np.array([p00[0] - bx0, p00[1] - by0])
+        # entrada = inv @ (salida - off)
+        coef = (inv[0, 0], inv[0, 1], -(inv[0] @ off), inv[1, 0], inv[1, 1], -(inv[1] @ off))
+        tile = atlas.crop((fx, fy, fx + fw, fy + fh))
+        warped = tile.transform((bw, bh), Image.AFFINE, coef, resample=Image.NEAREST)
+        k = 0.55 + 0.45 * lit
+        r, g_, b, al = warped.split()
+        warped = Image.merge('RGBA', (r.point(lambda v: int(v * k)), g_.point(lambda v: int(v * k)), b.point(lambda v: int(v * k)), al))
+        mask = Image.new('L', (bw, bh), 0)
+        ImageDraw.Draw(mask).polygon([(p00[0] - bx0, p00[1] - by0), (p10[0] - bx0, p10[1] - by0), (p11[0] - bx0, p11[1] - by0), (p01[0] - bx0, p01[1] - by0)], fill=255)
+        am = warped.split()[3]
+        from PIL import ImageChops
+        mask = ImageChops.multiply(mask, am.point(lambda v: 255 if v > 20 else 0))
+        img.paste(warped, (bx0, by0), mask)
+    img.save(out)
+    return img

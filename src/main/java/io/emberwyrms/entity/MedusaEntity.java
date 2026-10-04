@@ -29,7 +29,7 @@ public class MedusaEntity extends HostileEntity {
                 .add(EntityAttributes.MOVEMENT_SPEED, 0.26)
                 .add(EntityAttributes.ATTACK_DAMAGE, 6.0)
                 .add(EntityAttributes.FOLLOW_RANGE, 24.0)
-                .add(EntityAttributes.SCALE, 1.3);
+                .add(EntityAttributes.SCALE, 0.8);
     }
 
     @Override
