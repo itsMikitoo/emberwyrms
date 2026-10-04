@@ -30,7 +30,7 @@ public class TideDragonModel extends EntityModel<AshwingRenderState> {
     private static final float LEG_AMP = 0.9f, KNEE = 0.8f, BOB = 1.5f, CROUCH = 4f, FLY_BOB = 4f, DEATH_DY = 4f;
     private static final float FLY_NECK = 0.05f, SIT_NECK = -0.2f, DEATH_NECK = 0.6f, SIT_COIL = 0.5f, DEATH_TAIL = -0.06f, DEATH_WING = 0.9f;
     private static final float FLAP_SPEED = 0.3f, SNAP = 0f, JITTER = 0f, JAW_CLACK = 0f, WAVE = 0.2f, WAVEP = 0.07f, HEAD_SWAY = 0.22f;
-    private static final float FOLD = 0.9f, FOLD_YAW = 0.8f, FOLD_TIP = 1.2f, FOLD_ROLL = 0.3f, FLAP = 0.75f, TAIL_AMP = 2.2f, LEG_AMP = 0.6f;
+    private static final float FOLD = 0.9f, FOLD_YAW = 0.8f, FOLD_TIP = 1.2f, FOLD_ROLL = 0.3f, FLAP = 0.75f, TAIL_AMP = 2.2f;
 
     public TideDragonModel(ModelPart root) {
         super(root);
@@ -296,6 +296,6 @@ public class TideDragonModel extends EntityModel<AshwingRenderState> {
         if (sit) dy += CROUCH;
         if (fly) dy += sin(t * 0.2f) * FLY_BOB;
         dy += DEATH_DY * death;
-        for (int i = 0; i < ROOTS.length; i++) roots[i].originY = ROOT_Y[i] + dy;
+        for (int i = 0; i < roots.length; i++) roots[i].originY = ROOT_Y[i] + dy;
     }
 }

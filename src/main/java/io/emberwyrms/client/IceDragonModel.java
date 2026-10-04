@@ -30,7 +30,7 @@ public class IceDragonModel extends EntityModel<AshwingRenderState> {
     private static final float LEG_AMP = 1.5f, KNEE = 1.2f, BOB = 4.5f, CROUCH = 18f, FLY_BOB = 2f, DEATH_DY = 12f;
     private static final float FLY_NECK = 0.05f, SIT_NECK = -0.25f, DEATH_NECK = 0.7f, SIT_COIL = 0.3f, DEATH_TAIL = -0.1f, DEATH_WING = 1f;
     private static final float FLAP_SPEED = 0.2f, SNAP = 0f, JITTER = 0f, JAW_CLACK = 0f, WAVE = 0.04f, WAVEP = 0f, HEAD_SWAY = 0.1f;
-    private static final float FOLD = 0.9f, FOLD_YAW = 0.8f, FOLD_TIP = 1.2f, FOLD_ROLL = 0.3f, FLAP = 0.8f, TAIL_AMP = 1f, LEG_AMP = 1.5f;
+    private static final float FOLD = 0.9f, FOLD_YAW = 0.8f, FOLD_TIP = 1.2f, FOLD_ROLL = 0.3f, FLAP = 0.8f, TAIL_AMP = 1f;
 
     public IceDragonModel(ModelPart root) {
         super(root);
@@ -535,6 +535,6 @@ public class IceDragonModel extends EntityModel<AshwingRenderState> {
         if (sit) dy += CROUCH;
         if (fly) dy += sin(t * 0.2f) * FLY_BOB;
         dy += DEATH_DY * death;
-        for (int i = 0; i < ROOTS.length; i++) roots[i].originY = ROOT_Y[i] + dy;
+        for (int i = 0; i < roots.length; i++) roots[i].originY = ROOT_Y[i] + dy;
     }
 }

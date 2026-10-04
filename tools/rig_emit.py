@@ -246,7 +246,7 @@ public class @CLS@ extends EntityModel<@STATE@> {
         if (sit) dy += CROUCH;
         if (fly) dy += sin(t * 0.2f) * FLY_BOB;
         dy += DEATH_DY * death;
-        for (int i = 0; i < ROOTS.length; i++) roots[i].originY = ROOT_Y[i] + dy;
+        for (int i = 0; i < roots.length; i++) roots[i].originY = ROOT_Y[i] + dy;
     }
 }
 '''
@@ -302,9 +302,9 @@ def emit_java(cv, rig, cls, state_cls, out_path, has_flags=True, credit='ver CRE
         g('fly_neck', 0.05), g('sit_neck', -0.2), g('death_neck', 0.6), g('sit_coil', 0.3), g('death_tail', -0.1), g('death_wing', 0.9))))
     consts.append('    private static final float FLAP_SPEED = %s, SNAP = %s, JITTER = %s, JAW_CLACK = %s, WAVE = %s, WAVEP = %s, HEAD_SWAY = %s;' % tuple(fm(x) for x in (
         g('flap_speed', 0.3), g('snap', 0), g('jitter', 0.0), g('jaw_clack', 0.0), g('wave', 0.04), g('wavep', 0.0), g('head_sway', 0.1))))
-    consts.append('    private static final float FOLD = %s, FOLD_YAW = %s, FOLD_TIP = %s, FOLD_ROLL = %s, FLAP = %s, TAIL_AMP = %s, LEG_AMP = %s;' % tuple(
+    consts.append('    private static final float FOLD = %s, FOLD_YAW = %s, FOLD_TIP = %s, FOLD_ROLL = %s, FLAP = %s, TAIL_AMP = %s;' % tuple(
         fm(x) for x in (rig.get('fold', 0.9), rig.get('fold_yaw', 0.8), rig.get('fold_tip', 1.2), rig.get('fold_roll', 0.3),
-                        rig.get('flap', 0.75), rig.get('tail_amp', 1.0), rig.get('leg_amp', 0.6))))
+                        rig.get('flap', 0.75), rig.get('tail_amp', 1.0))))
     src = (JAVA_TEMPLATE.replace('@CLS@', cls).replace('@STATE@', state_cls).replace('@CREDIT@', credit)
            .replace('@CONSTS@', '\n'.join(consts)).replace('@BONEPATHS@', ',\n'.join(rows)).replace('@ROOTPATHS@', ',\n'.join(rootrows))
            .replace('@CALLS@', '\n'.join(calls)).replace('@CHUNKS@', '\n'.join(chunks)).replace('@TEX@', str(cv.size))

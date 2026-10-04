@@ -30,7 +30,7 @@ public class FireDragonModel extends EntityModel<AshwingRenderState> {
     private static final float LEG_AMP = 0.9f, KNEE = 0.9f, BOB = 3.5f, CROUCH = 16f, FLY_BOB = 3f, DEATH_DY = 10f;
     private static final float FLY_NECK = 0.05f, SIT_NECK = -0.2f, DEATH_NECK = 0.7f, SIT_COIL = 0.3f, DEATH_TAIL = -0.12f, DEATH_WING = 1f;
     private static final float FLAP_SPEED = 0.22f, SNAP = 0f, JITTER = 0f, JAW_CLACK = 0f, WAVE = 0.05f, WAVEP = 0f, HEAD_SWAY = 0.08f;
-    private static final float FOLD = 0.9f, FOLD_YAW = 0.8f, FOLD_TIP = 1.2f, FOLD_ROLL = 0.3f, FLAP = 0.8f, TAIL_AMP = 1f, LEG_AMP = 0.9f;
+    private static final float FOLD = 0.9f, FOLD_YAW = 0.8f, FOLD_TIP = 1.2f, FOLD_ROLL = 0.3f, FLAP = 0.8f, TAIL_AMP = 1f;
 
     public FireDragonModel(ModelPart root) {
         super(root);
@@ -295,6 +295,6 @@ public class FireDragonModel extends EntityModel<AshwingRenderState> {
         if (sit) dy += CROUCH;
         if (fly) dy += sin(t * 0.2f) * FLY_BOB;
         dy += DEATH_DY * death;
-        for (int i = 0; i < ROOTS.length; i++) roots[i].originY = ROOT_Y[i] + dy;
+        for (int i = 0; i < roots.length; i++) roots[i].originY = ROOT_Y[i] + dy;
     }
 }
