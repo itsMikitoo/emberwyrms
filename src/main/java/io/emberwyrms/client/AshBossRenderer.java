@@ -24,6 +24,7 @@ public class AshBossRenderer extends MobEntityRenderer<AshDragonEntity, AshwingR
         super.updateRenderState(entity, state, tickDelta);
         state.walkSpeed = entity.anim.speed;
         state.walkPhase = entity.anim.phaseAt(tickDelta);
+        state.death = entity.deathTime > 0 ? Math.min(1f, (entity.deathTime + tickDelta) / 20f) : 0f;
         state.breathing = entity.isBreathing();
     }
 

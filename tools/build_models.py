@@ -22,7 +22,7 @@ MODELS = {
                        legs=LEGS4(['rearleg', 'rearlegtip', 'rearfoot'], ['rearleg1', 'rearlegtip1', 'rearfoot1'],
                                   ['frontleg', 'frontlegtip', 'frontfoot'], ['frontleg1', 'frontlegtip1', 'frontfoot1']))),
  'ice': dict(kind='bedrock', src='ice_wyvern/ice_wyverngeo.json', texsrc='ice_wyvern/wyvern_texture.png', f=1.0, cls='IceDragonModel',
-             tex='ice_dragon', credit='Ice Wyvern (Sketchfab)', S=0.78, yaw=-40,
+             tex='ice_dragon', credit='Ice Wyvern (Sketchfab)', S=0.78, yaw=-40, ops=[('recenter', 'Main_head', 'head')],
              rig=dict(head='Main_head', jaw='bone', neck=['Neckhead'], tail=['tail', 'tail4', 'tail5', 'tail6', 'tail7'],
                       wings=[('left_wing', ['wing3', 'bone5']), ('right_wing', ['wing4', 'bone15'])],
                       legs=[(['rearleg3', 'rearlegtip3'], 0), (['rearleg2', 'rearlegtip2'], 1)])),
@@ -32,16 +32,27 @@ MODELS = {
                         wings=[('leftWing', ['leftRadiusulna2', 'leftPhanlange1']), ('rightWing', ['rightRadiusulna3', 'rightPhanlange4'])],
                         legs=LEGS4(['leftFemur', 'leftTibia'], ['rightFemur', 'rightTibia'], ['leftHumerus', 'leftRadiusulna', 'Foot1'], ['rightHumerus', 'rightRadiusulna', 'Foot2']))),
  'tide': dict(kind='gltf', src='serpent-blue-dragon/source/model.gltf', f=1.0, cls='TideDragonModel', tex='tide_dragon',
-              credit='Serpent Blue Dragon (Sketchfab)', S=2.6, yaw=-40, ops=[('slice', 'Corpo', 10, 'z')],
+              credit='Serpent Blue Dragon (Sketchfab)', S=2.6, yaw=-40, ops=[('slice', 'Corpo', 10, 'z'), ('recenter', 'Head', 'head')],
               rig=dict(head='Head', tail=['Corpo_s%d' % k for k in range(10)], tail_amp=2.2)),
  'boss': dict(kind='gltf', src='the-warrior/source/model.gltf', f=0.4, cls='AshBossModel', tex='ash_dragon',
-              credit='The Warrior (Sketchfab)', S=0.62, yaw=-40,
+              credit='The Warrior (Sketchfab)', S=0.62, yaw=-40, ops=[('recenter', 'bone8', 'head'), ('recenter', 'bone9', 'head')],
               rig=dict(head='bone9', neck=['bone8'], tail=['bone7', 'Tail'], wings=[('Wing_left', []), ('Wing_right', [])],
                        legs=LEGS4([('Leg', 'Leg')], [('Leg2', 'Leg2')], [('Leg3', 'Leg3')], [('Leg4', 'Leg4')]))),
  'medusa': dict(kind='gltf', src='gorgon/source/model.gltf', f=2.0, pre_yaw=90, cls='MedusaModel', tex='medusa', state='MedusaRenderState',
-                has_flags=False, credit='Gorgon (Sketchfab, CC BY)', S=9.0, yaw=-30, ops=[('slice', 'Tail', 7, 'z')],
+                has_flags=False, credit='Gorgon (Sketchfab, CC BY)', S=9.0, yaw=-30, ops=[('slice', 'Tail', 7, 'z'), ('recenter', 'Head', 'base'), ('recenter', 'R', 'base'), ('recenter', 'L', 'base')],
                 rig=dict(head='Head', hair=['R', 'L'], tail=['Tail_s%d' % k for k in range(7)], tail_amp=1.6)),
 }
+
+MOTION = {
+    'fire': dict(leg_amp=0.9, knee=0.9, bob=3.5, crouch=16, fly_bob=3, flap=0.8, flap_speed=0.22, sit_leg=(0.9, -1.3, 0.7), fly_leg=(0.9, 0.8, 0.3), death_leg=(0.7, -1.0, 0.3), death_neck=0.7, death_tail=-0.12, death_wing=1.0, death_dy=10, head_sway=0.08, wave=0.05),
+    'ice': dict(leg_amp=1.5, knee=1.2, bob=4.5, crouch=18, flap=0.8, flap_speed=0.2, sit_leg=(1.2, -1.8, 0.9), fly_leg=(0.9, 0.9, 0.3), death_leg=(0.9, -1.4, 0.4), death_neck=0.7, death_tail=-0.1, death_wing=1.0, death_dy=12, sit_neck=-0.25, head_sway=0.1),
+    'storm': dict(leg_amp=1.1, knee=0.6, bob=2.0, crouch=6, flap=0.8, flap_speed=0.32, snap=1, jitter=0.012, jaw_clack=0.18, sit_leg=(0.7, -1.0, 0.5), fly_leg=(0.8, 0.6, 0.3), death_leg=(0.8, -1.1, 0.4), death_neck=0.9, death_tail=-0.4, death_wing=1.1, death_dy=5, head_sway=0.2),
+    'tide': dict(wave=0.2, wavep=0.07, tail_amp=2.2, sit_coil=0.5, fly_bob=4, bob=1.5, crouch=4, death_tail=-0.06, death_dy=4, head_sway=0.22),
+    'boss': dict(leg_amp=0.85, knee=0.8, bob=7, crouch=0, death_leg=(0.9, -1.5, 0.5), death_neck=0.8, death_tail=-0.12, death_wing=0.9, death_dy=14, head_sway=0.05, wave=0.04),
+    'medusa': dict(wave=0.2, wavep=0.05, tail_amp=1.6, head_sway=0.1, bob=0.8, death_dy=4, death_tail=-0.08)
+}
+for _k, _v in MOTION.items():
+    MODELS[_k]['rig'].update(_v)
 
 def load(cfg, base):
     if cfg['kind'] == 'bedrock':
@@ -74,13 +85,15 @@ def main(base, only=None):
                           top_blocks=round(float((24 - pts[:, 1].min()) / 16.0), 2), bones=len(bones))
         print('%-7s %-18s piezas %3d cubos %3d atlas %4d huesos animados %2d | tamano (bloques x,y,z): %s' % (
             key, cfg['cls'], len(cv.parts), len(cv.cubes), cv.size, len(bones), stats[key]['blocks_xyz']))
-        # poses de revision y foto del bestiario
+        # poses de revision: caminar (2 fases), volar (arriba/abajo), agachado, muerte
         rig = cfg['rig']
         P = lambda **k: RE.pose_deltas(cv, rig, bones, R, **k)
-        yaw = cfg.get('yaw', -40); S = cfg['S']
-        RM.render(cv, os.path.join(ROOT, 'tools', '_pose_%s_fold.png' % key), pose=P(t=0, walk=0, amp=0), yaw=yaw, pitch=14, S=S, size=(900, 600), bg=(205, 210, 220))
-        RM.render(cv, os.path.join(ROOT, 'tools', '_pose_%s_fly.png' % key), pose=P(t=5.24, fly=True), yaw=yaw, pitch=14, S=S, size=(900, 600), bg=(205, 210, 220))
-        RM.render(cv, os.path.join(ROOT, 'tools', '_pose_%s_walk.png' % key), pose=P(t=3, walk=2.5, amp=1.0), yaw=yaw, pitch=14, S=S, size=(900, 600), bg=(205, 210, 220))
+        yaw = cfg.get('yaw', -40); S = cfg['S']; fs = rig.get('flap_speed', 0.3)
+        poses = {'walkA': P(t=3, walk=2.358, amp=1.0), 'walkB': P(t=3, walk=7.07, amp=1.0),
+                 'flyUp': P(t=1.5708 / fs, fly=True), 'flyDown': P(t=4.712 / fs, fly=True),
+                 'sit': P(t=3, sit=True), 'death': P(t=3, death=1.0)}
+        for name, pose in poses.items():
+            RM.render(cv, os.path.join(ROOT, 'tools', '_pose_%s_%s.png' % (key, name)), pose=pose, yaw=yaw, pitch=14, S=S, size=(900, 600), bg=(205, 210, 220))
     json.dump(stats, open(os.path.join(ROOT, 'tools', 'model_stats.json'), 'w'), indent=1)
 
 if __name__ == '__main__':

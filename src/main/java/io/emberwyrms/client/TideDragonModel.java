@@ -17,6 +17,7 @@ import net.minecraft.client.render.entity.model.EntityModel;
  */
 public class TideDragonModel extends EntityModel<AshwingRenderState> {
     private final ModelPart[] bones;
+    private final ModelPart[] roots;
     private static final float[][] REST = {{0f, 0f, 0f}, {0f, 0f, 0f}, {0f, 0f, 0f}, {0f, 0f, 0f}, {0f, 0f, 0f}, {0f, 0f, 0f}, {0f, 0f, 0f}, {0f, 0f, 0f}, {0f, 0f, 0f}, {0f, 0f, 0f}, {0f, 0f, 0f}};
     private static final int HEAD = 0, JAW = -1;
     private static final int[] NECK = {}, TAIL = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, HAIR = {};
@@ -24,6 +25,11 @@ public class TideDragonModel extends EntityModel<AshwingRenderState> {
     private static final float[] WSIGN = {};
     private static final int[][] LEG = {};
     private static final float[] LPHASE = {};
+    private static final float[] ROOT_Y = {26.8932f};
+    private static final float[] SIT_LEG = {0.8f, -1.2f, 0.6f}, FLY_LEG = {0.9f, 0.7f, 0.3f}, DEATH_LEG = {0.6f, -0.9f, 0.3f};
+    private static final float LEG_AMP = 0.9f, KNEE = 0.8f, BOB = 1.5f, CROUCH = 4f, FLY_BOB = 4f, DEATH_DY = 4f;
+    private static final float FLY_NECK = 0.05f, SIT_NECK = -0.2f, DEATH_NECK = 0.6f, SIT_COIL = 0.5f, DEATH_TAIL = -0.06f, DEATH_WING = 0.9f;
+    private static final float FLAP_SPEED = 0.3f, SNAP = 0f, JITTER = 0f, JAW_CLACK = 0f, WAVE = 0.2f, WAVEP = 0.07f, HEAD_SWAY = 0.22f;
     private static final float FOLD = 0.9f, FOLD_YAW = 0.8f, FOLD_TIP = 1.2f, FOLD_ROLL = 0.3f, FLAP = 0.75f, TAIL_AMP = 2.2f, LEG_AMP = 0.6f;
 
     public TideDragonModel(ModelPart root) {
@@ -40,6 +46,9 @@ public class TideDragonModel extends EntityModel<AshwingRenderState> {
             root.getChild("n0_x").getChild("n51_Corpo").getChild("slice113_Corpo").getChild("slice114_Corpo").getChild("slice115_Corpo").getChild("slice116_Corpo").getChild("slice117_Corpo").getChild("slice118_Corpo").getChild("slice119_Corpo").getChild("slice120_Corpo"),
             root.getChild("n0_x").getChild("n51_Corpo").getChild("slice113_Corpo").getChild("slice114_Corpo").getChild("slice115_Corpo").getChild("slice116_Corpo").getChild("slice117_Corpo").getChild("slice118_Corpo").getChild("slice119_Corpo").getChild("slice120_Corpo").getChild("slice121_Corpo"),
             root.getChild("n0_x").getChild("n51_Corpo").getChild("slice113_Corpo").getChild("slice114_Corpo").getChild("slice115_Corpo").getChild("slice116_Corpo").getChild("slice117_Corpo").getChild("slice118_Corpo").getChild("slice119_Corpo").getChild("slice120_Corpo").getChild("slice121_Corpo").getChild("slice122_Corpo")
+        };
+        this.roots = new ModelPart[] {
+            root.getChild("n0_x")
         };
     }
 
@@ -59,56 +68,56 @@ public class TideDragonModel extends EntityModel<AshwingRenderState> {
 
     private static void p0(Map<String, ModelPartData> m) {
         add(m, "", "n0_x", ModelPartBuilder.create(), ModelTransform.of(0f, 26.8932f, 0f, 0f, 0f, 0f));
-        add(m, "n0_x", "n1_Head", ModelPartBuilder.create(), ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
-        add(m, "n1_Head", "n2_Focinho", ModelPartBuilder.create().uv(224, 74).cuboid(-2.9f, -1f, -17.1f, 6, 2, 7, new Dilation(-0.1f, 0.15f, 0.15f)), ModelTransform.of(0f, -19f, -27f, 0.2618f, 0f, 0f));
-        add(m, "n1_Head", "n3_Cabeça", ModelPartBuilder.create().uv(0, 90).cuboid(-2.7f, -1.3268f, -16.8886f, 5, 2, 7, new Dilation(0.2f, -0.15f, 0.05f)), ModelTransform.of(0f, -19f, -27f, 0.5236f, 0f, 0f));
-        add(m, "n1_Head", "n4_Cabeça", ModelPartBuilder.create().uv(0, 0).cuboid(-2.8287f, -7.9f, 0.48f, 1, 15, 14, new Dilation(-0.4995f, -0.1f, 0f)), ModelTransform.of(0f, -19f, -27f, 0.2669f, -0.1938f, -0.0526f));
-        add(m, "n1_Head", "n5_Cabeça", ModelPartBuilder.create().uv(30, 0).cuboid(2.8998f, -7.9f, 0.3452f, 1, 15, 14, new Dilation(-0.4995f, -0.1f, 0f)), ModelTransform.of(0f, -19f, -27f, 0.2665f, 0.1854f, 0.0503f));
-        add(m, "n1_Head", "n6_Focinho_cima", ModelPartBuilder.create().uv(60, 90).cuboid(-1.7f, -1.9f, -17.1f, 3, 1, 7, new Dilation(0.2f, 0f, 0.15f)), ModelTransform.of(0f, -19f, -27f, 0.2618f, 0f, 0f));
-        add(m, "n1_Head", "n7_Sombrancelha", ModelPartBuilder.create().uv(50, 107).cuboid(-0.15f, -1.1067f, -2.9037f, 1, 2, 3, new Dilation(-0.35f, -0.1f, 0.05f)), ModelTransform.of(-3.0611f, -20.2608f, -34.0209f, 0.5585f, 0f, -0.1745f));
-        add(m, "n1_Head", "n8_Sombrancelha", ModelPartBuilder.create().uv(58, 107).cuboid(-0.25f, -1.0558f, -2.8973f, 1, 2, 3, new Dilation(-0.25f, -0.15f, 0.05f)), ModelTransform.of(3.05f, -20.2164f, -34.0003f, 0.5585f, 0f, 0.2618f));
-        add(m, "n1_Head", "n9_Cabeça", ModelPartBuilder.create().uv(66, 107).cuboid(-0.25f, -1.0499f, -0.2454f, 1, 2, 3, new Dilation(-0.25f, -0.1f, 0.1f)), ModelTransform.of(3.05f, -20.2164f, -34.0003f, 0.2967f, 0f, 0.2618f));
-        add(m, "n1_Head", "n10_Cabeça", ModelPartBuilder.create().uv(74, 107).cuboid(-0.15f, -1.1008f, -0.2389f, 1, 2, 3, new Dilation(-0.35f, -0.05f, 0.1f)), ModelTransform.of(-3.0611f, -20.2608f, -34.0209f, 0.2967f, 0f, -0.1745f));
-        add(m, "n1_Head", "n11_Cabeça", ModelPartBuilder.create().uv(24, 90).cuboid(0.7341f, -3.4315f, -0.7157f, 2, 2, 7, new Dilation(0.05f, 0f, -0.15f)), ModelTransform.of(0f, -19f, -27f, 0.8029f, -0.0121f, -0.0126f));
-        add(m, "n1_Head", "n12_Cabeça", ModelPartBuilder.create().uv(42, 90).cuboid(-2.8342f, -3.4315f, -0.5499f, 2, 2, 7, new Dilation(0.05f, 0f, -0.15f)), ModelTransform.of(0f, -19f, -27f, 0.8029f, 0.0121f, 0.0126f));
-        add(m, "n1_Head", "n13_Bigode_frente", ModelPartBuilder.create().uv(194, 107).cuboid(0.7f, -13.9703f, -11.2477f, 1, 1, 2, new Dilation(-0.15f, -0.25f, 0f)), ModelTransform.of(0f, -19f, -27f, 1.1694f, 0f, 0f));
-        add(m, "n1_Head", "n14_Cabeça", ModelPartBuilder.create().uv(200, 107).cuboid(-1.4f, -13.9703f, -11.2477f, 1, 1, 2, new Dilation(-0.15f, -0.25f, 0f)), ModelTransform.of(0f, -19f, -27f, 1.1694f, 0f, 0f));
-        add(m, "n1_Head", "n15_Cabeça", ModelPartBuilder.create().uv(206, 107).cuboid(-1.4f, -16.8003f, -7.9638f, 1, 1, 2, new Dilation(-0.15f, -0.25f, 0f)), ModelTransform.of(0f, -19f, -27f, 1.501f, 0f, 0f));
-        add(m, "n1_Head", "n16_Cabeça", ModelPartBuilder.create().uv(212, 107).cuboid(0.7f, -16.8003f, -7.9638f, 1, 1, 2, new Dilation(-0.15f, -0.25f, 0f)), ModelTransform.of(0f, -19f, -27f, 1.501f, 0f, 0f));
-        add(m, "n1_Head", "n17_Cabeça", ModelPartBuilder.create().uv(82, 107).cuboid(-1.4f, -0.2833f, -2.531f, 1, 1, 3, new Dilation(-0.15f, -0.25f, -0.1f)), ModelTransform.of(0f, -12.1f, -44f, 1.885f, 0f, 0f));
-        add(m, "n1_Head", "n18_Cabeça", ModelPartBuilder.create().uv(90, 107).cuboid(0.7f, -0.2833f, -2.531f, 1, 1, 3, new Dilation(-0.15f, -0.25f, -0.1f)), ModelTransform.of(0f, -12.1f, -44f, 1.885f, 0f, 0f));
-        add(m, "n1_Head", "n19_Cabeça", ModelPartBuilder.create().uv(98, 107).cuboid(-1.4f, 0.1464f, -1.7809f, 1, 1, 3, new Dilation(-0.15f, -0.25f, -0.1f)), ModelTransform.of(0f, -9f, -43.6f, 1.7017f, 0f, 0f));
-        add(m, "n1_Head", "n20_Cabeça", ModelPartBuilder.create().uv(106, 107).cuboid(0.7f, 0.1464f, -1.7809f, 1, 1, 3, new Dilation(-0.15f, -0.25f, -0.1f)), ModelTransform.of(0f, -9f, -43.6f, 1.7017f, 0f, 0f));
-        add(m, "n1_Head", "n21_Cabeça", ModelPartBuilder.create().uv(114, 107).cuboid(-1.3f, -18.6762f, -9.8438f, 1, 1, 3, new Dilation(-0.25f, -0.35f, -0.1f)), ModelTransform.of(0f, -19f, -27f, 1.8326f, 0f, 0f));
-        add(m, "n1_Head", "n22_Cabeça", ModelPartBuilder.create().uv(122, 107).cuboid(0.8f, -18.6762f, -9.8438f, 1, 1, 3, new Dilation(-0.25f, -0.35f, -0.1f)), ModelTransform.of(0f, -19f, -27f, 1.8326f, 0f, 0f));
-        add(m, "n1_Head", "n23_Cabeça", ModelPartBuilder.create().uv(130, 107).cuboid(-1.2f, 0.2486f, -2.6496f, 1, 1, 3, new Dilation(-0.35f, -0.45f, -0.1f)), ModelTransform.of(0f, -4.5f, -42.5f, 2.3998f, 0f, 0f));
-        add(m, "n1_Head", "n24_Cabeça", ModelPartBuilder.create().uv(138, 107).cuboid(0.9f, 0.2486f, -2.6496f, 1, 1, 3, new Dilation(-0.35f, -0.45f, -0.1f)), ModelTransform.of(0f, -4.5f, -42.5f, 2.3998f, 0f, 0f));
-        add(m, "n1_Head", "n25_Bigode_baixo", ModelPartBuilder.create().uv(148, 52).cuboid(-0.001f, 3.2f, -16.3f, 1, 5, 12, new Dilation(-0.4995f, 0.2f, -0.1f)), ModelTransform.of(0f, -19f, -27f, 0.2618f, 0f, 0f));
-        add(m, "n1_Head", "n26_Chifres", ModelPartBuilder.create().uv(118, 99).cuboid(-0.6471f, -3.5213f, -3.4043f, 1, 1, 6, new Dilation(-0.05f, 0.2f, -0.1f)), ModelTransform.of(0f, -19f, -27f, 1.9714f, -0.0891f, -2.292f));
-        add(m, "n1_Head", "n27_Chifres", ModelPartBuilder.create().uv(132, 99).cuboid(-0.6471f, -3.7811f, -4.2484f, 1, 1, 6, new Dilation(-0.05f, 0.2f, -0.1f)), ModelTransform.of(0f, -19f, -27f, 2.3031f, -0.0891f, -2.292f));
-        add(m, "n1_Head", "n28_Chifres", ModelPartBuilder.create().uv(80, 90).cuboid(-0.6471f, -4.1892f, -6.2368f, 1, 1, 7, new Dilation(-0.05f, 0.2f, -0.2f)), ModelTransform.of(0f, -19f, -27f, 2.5125f, -0.0891f, -2.292f));
-        add(m, "n1_Head", "n29_Chifres", ModelPartBuilder.create().uv(96, 90).cuboid(-0.6471f, -4.6708f, -8.1683f, 1, 1, 7, new Dilation(-0.05f, 0.2f, -0.2f)), ModelTransform.of(0f, -19f, -27f, 2.6347f, -0.0891f, -2.292f));
-        add(m, "n1_Head", "n30_Chifres", ModelPartBuilder.create().uv(112, 90).cuboid(-0.5471f, -4.5708f, -10.8683f, 1, 1, 7, new Dilation(-0.15f, 0.1f, -0.2f)), ModelTransform.of(0f, -19f, -27f, 2.6347f, -0.0891f, -2.292f));
-        add(m, "n1_Head", "n31_Chifres", ModelPartBuilder.create().uv(128, 90).cuboid(-0.4471f, -4.4708f, -13.6683f, 1, 1, 7, new Dilation(-0.25f, 0f, -0.2f)), ModelTransform.of(0f, -19f, -27f, 2.6347f, -0.0891f, -2.292f));
-        add(m, "n1_Head", "n32_Cabeça", ModelPartBuilder.create().uv(146, 99).cuboid(-1.7806f, -3.4486f, -3.5541f, 1, 1, 6, new Dilation(-0.05f, 0.2f, -0.1f)), ModelTransform.of(0f, -19f, -27f, 2.0577f, -0.1046f, 1.9526f));
-        add(m, "n1_Head", "n33_Cabeça", ModelPartBuilder.create().uv(160, 99).cuboid(-1.7806f, -3.7611f, -4.4137f, 1, 1, 6, new Dilation(-0.05f, 0.2f, -0.1f)), ModelTransform.of(0f, -19f, -27f, 2.3893f, -0.1046f, 1.9526f));
-        add(m, "n1_Head", "n34_Cabeça", ModelPartBuilder.create().uv(144, 90).cuboid(-1.7806f, -4.204f, -6.4027f, 1, 1, 7, new Dilation(-0.05f, 0.2f, -0.2f)), ModelTransform.of(0f, -19f, -27f, 2.5987f, -0.1046f, 1.9526f));
-        add(m, "n1_Head", "n35_Cabeça", ModelPartBuilder.create().uv(160, 90).cuboid(-1.7806f, -4.7058f, -8.3311f, 1, 1, 7, new Dilation(-0.05f, 0.2f, -0.2f)), ModelTransform.of(0f, -19f, -27f, 2.7209f, -0.1046f, 1.9526f));
-        add(m, "n1_Head", "n36_Cabeça", ModelPartBuilder.create().uv(176, 90).cuboid(-1.6806f, -4.6058f, -11.0311f, 1, 1, 7, new Dilation(-0.15f, 0.1f, -0.2f)), ModelTransform.of(0f, -19f, -27f, 2.7209f, -0.1046f, 1.9526f));
-        add(m, "n1_Head", "n37_Cabeça", ModelPartBuilder.create().uv(192, 90).cuboid(-1.5806f, -4.5058f, -13.8311f, 1, 1, 7, new Dilation(-0.25f, 0f, -0.2f)), ModelTransform.of(0f, -19f, -27f, 2.7209f, -0.1046f, 1.9526f));
-        add(m, "n1_Head", "n38_Cabeça", ModelPartBuilder.create().uv(48, 99).cuboid(-2.6531f, -2.0003f, 6.2647f, 1, 2, 6, new Dilation(0.25f, -0.15f, -0.15f)), ModelTransform.of(0f, -19f, -27f, 1.0298f, 0.009f, 0.015f));
-        add(m, "n1_Head", "n39_Cabeça", ModelPartBuilder.create().uv(208, 90).cuboid(1.1531f, -2.0003f, 6.0989f, 2, 2, 6, new Dilation(-0.25f, -0.15f, -0.15f)), ModelTransform.of(0f, -19f, -27f, 1.0298f, -0.009f, -0.015f));
-        add(m, "n1_Head", "n40_Bigode_baixo", ModelPartBuilder.create().uv(174, 52).cuboid(-2.651f, 3.2f, -9.3f, 1, 5, 12, new Dilation(-0.4995f, 0.2f, -0.1f)), ModelTransform.of(0f, -19f, -27f, 0.2618f, 0f, 0f));
-        add(m, "n1_Head", "n41_Bigode_baixo", ModelPartBuilder.create().uv(200, 52).cuboid(2.749f, 3.2f, -9.3f, 1, 5, 12, new Dilation(-0.4995f, 0.2f, -0.1f)), ModelTransform.of(0f, -19f, -27f, 0.2618f, 0f, 0f));
-        add(m, "n1_Head", "n42_Cabeça", ModelPartBuilder.create().uv(174, 99).cuboid(-2.7309f, -0.5106f, 10.7202f, 1, 1, 6, new Dilation(0.2f, 0.2f, -0.15f)), ModelTransform.of(0f, -19f, -27f, 1.152f, 0.0071f, 0.0159f));
-        add(m, "n1_Head", "n43_Cabeça", ModelPartBuilder.create().uv(188, 99).cuboid(1.2309f, -0.5106f, 10.5544f, 1, 1, 6, new Dilation(0.2f, 0.2f, -0.15f)), ModelTransform.of(0f, -19f, -27f, 1.152f, -0.0071f, -0.0159f));
-        add(m, "n1_Head", "n44_Dentes", ModelPartBuilder.create().uv(14, 107).cuboid(-0.001f, -0.55f, -2.65f, 1, 2, 5, new Dilation(-0.4995f, -0.25f, 0.15f)), ModelTransform.of(2.5668f, -13.5224f, -40.2648f, 0.5318f, -0.0044f, -0.0194f));
-        add(m, "n1_Head", "n45_Dentes", ModelPartBuilder.create().uv(26, 107).cuboid(-0.101f, -0.65f, -2.65f, 1, 2, 5, new Dilation(-0.4995f, -0.25f, 0.15f)), ModelTransform.of(-2.4305f, -13.6331f, -39.9841f, 0.5318f, 0.01f, -0.0095f));
-        add(m, "n1_Head", "n46_Dentes", ModelPartBuilder.create().uv(224, 90).cuboid(2.799f, 1.3f, -16.9f, 1, 1, 7, new Dilation(-0.4995f, 0.15f, 0.05f)), ModelTransform.of(0f, -19f, -27f, 0.2618f, 0f, 0f));
-        add(m, "n1_Head", "n47_Dentes", ModelPartBuilder.create().uv(240, 90).cuboid(0.499f, -0.65f, -6.05f, 1, 1, 7, new Dilation(-0.4995f, 0.15f, 0.05f)), ModelTransform.of(-2.6299f, -12.6528f, -43.1539f, 1.6034f, -1.3089f, -1.6045f));
-        add(m, "n1_Head", "n48_Dentes", ModelPartBuilder.create().uv(38, 107).cuboid(16.4845f, -3.707f, -1.7143f, 1, 2, 5, new Dilation(-0.4995f, -0.25f, 0.15f)), ModelTransform.of(0f, -19f, -27f, 1.6518f, 0.967f, 1.6527f));
-        add(m, "n1_Head", "n49_Dentes", ModelPartBuilder.create().uv(0, 99).cuboid(-2.801f, 1.3f, -16.9f, 1, 1, 7, new Dilation(-0.4995f, 0.15f, 0.05f)), ModelTransform.of(0f, -19f, -27f, 0.2618f, 0f, 0f));
-        add(m, "n1_Head", "n50_Cabeça", ModelPartBuilder.create().uv(0, 74).cuboid(-2.9f, -3.2f, -9.9f, 6, 6, 10, new Dilation(-0.1f, 0.2f, -0.1f)), ModelTransform.of(0f, -19f, -27f, 0.2618f, 0f, 0f));
+        add(m, "n0_x", "n1_Head", ModelPartBuilder.create(), ModelTransform.of(0.2746f, -12.3001f, -12.0529f, 0f, 0f, 0f));
+        add(m, "n1_Head", "n2_Focinho", ModelPartBuilder.create().uv(224, 74).cuboid(-2.9f, -1f, -17.1f, 6, 2, 7, new Dilation(-0.1f, 0.15f, 0.15f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 0.2618f, 0f, 0f));
+        add(m, "n1_Head", "n3_Cabeça", ModelPartBuilder.create().uv(0, 90).cuboid(-2.7f, -1.3268f, -16.8886f, 5, 2, 7, new Dilation(0.2f, -0.15f, 0.05f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 0.5236f, 0f, 0f));
+        add(m, "n1_Head", "n4_Cabeça", ModelPartBuilder.create().uv(0, 0).cuboid(-2.8287f, -7.9f, 0.48f, 1, 15, 14, new Dilation(-0.4995f, -0.1f, 0f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 0.2669f, -0.1938f, -0.0526f));
+        add(m, "n1_Head", "n5_Cabeça", ModelPartBuilder.create().uv(30, 0).cuboid(2.8998f, -7.9f, 0.3452f, 1, 15, 14, new Dilation(-0.4995f, -0.1f, 0f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 0.2665f, 0.1854f, 0.0503f));
+        add(m, "n1_Head", "n6_Focinho_cima", ModelPartBuilder.create().uv(60, 90).cuboid(-1.7f, -1.9f, -17.1f, 3, 1, 7, new Dilation(0.2f, 0f, 0.15f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 0.2618f, 0f, 0f));
+        add(m, "n1_Head", "n7_Sombrancelha", ModelPartBuilder.create().uv(50, 107).cuboid(-0.15f, -1.1067f, -2.9037f, 1, 2, 3, new Dilation(-0.35f, -0.1f, 0.05f)), ModelTransform.of(-3.3357f, -7.9606f, -21.968f, 0.5585f, 0f, -0.1745f));
+        add(m, "n1_Head", "n8_Sombrancelha", ModelPartBuilder.create().uv(58, 107).cuboid(-0.25f, -1.0558f, -2.8973f, 1, 2, 3, new Dilation(-0.25f, -0.15f, 0.05f)), ModelTransform.of(2.7754f, -7.9163f, -21.9475f, 0.5585f, 0f, 0.2618f));
+        add(m, "n1_Head", "n9_Cabeça", ModelPartBuilder.create().uv(66, 107).cuboid(-0.25f, -1.0499f, -0.2454f, 1, 2, 3, new Dilation(-0.25f, -0.1f, 0.1f)), ModelTransform.of(2.7754f, -7.9163f, -21.9475f, 0.2967f, 0f, 0.2618f));
+        add(m, "n1_Head", "n10_Cabeça", ModelPartBuilder.create().uv(74, 107).cuboid(-0.15f, -1.1008f, -0.2389f, 1, 2, 3, new Dilation(-0.35f, -0.05f, 0.1f)), ModelTransform.of(-3.3357f, -7.9606f, -21.968f, 0.2967f, 0f, -0.1745f));
+        add(m, "n1_Head", "n11_Cabeça", ModelPartBuilder.create().uv(24, 90).cuboid(0.7341f, -3.4315f, -0.7157f, 2, 2, 7, new Dilation(0.05f, 0f, -0.15f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 0.8029f, -0.0121f, -0.0126f));
+        add(m, "n1_Head", "n12_Cabeça", ModelPartBuilder.create().uv(42, 90).cuboid(-2.8342f, -3.4315f, -0.5499f, 2, 2, 7, new Dilation(0.05f, 0f, -0.15f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 0.8029f, 0.0121f, 0.0126f));
+        add(m, "n1_Head", "n13_Bigode_frente", ModelPartBuilder.create().uv(194, 107).cuboid(0.7f, -13.9703f, -11.2477f, 1, 1, 2, new Dilation(-0.15f, -0.25f, 0f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 1.1694f, 0f, 0f));
+        add(m, "n1_Head", "n14_Cabeça", ModelPartBuilder.create().uv(200, 107).cuboid(-1.4f, -13.9703f, -11.2477f, 1, 1, 2, new Dilation(-0.15f, -0.25f, 0f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 1.1694f, 0f, 0f));
+        add(m, "n1_Head", "n15_Cabeça", ModelPartBuilder.create().uv(206, 107).cuboid(-1.4f, -16.8003f, -7.9638f, 1, 1, 2, new Dilation(-0.15f, -0.25f, 0f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 1.501f, 0f, 0f));
+        add(m, "n1_Head", "n16_Cabeça", ModelPartBuilder.create().uv(212, 107).cuboid(0.7f, -16.8003f, -7.9638f, 1, 1, 2, new Dilation(-0.15f, -0.25f, 0f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 1.501f, 0f, 0f));
+        add(m, "n1_Head", "n17_Cabeça", ModelPartBuilder.create().uv(82, 107).cuboid(-1.4f, -0.2833f, -2.531f, 1, 1, 3, new Dilation(-0.15f, -0.25f, -0.1f)), ModelTransform.of(-0.2746f, 0.2001f, -31.9471f, 1.885f, 0f, 0f));
+        add(m, "n1_Head", "n18_Cabeça", ModelPartBuilder.create().uv(90, 107).cuboid(0.7f, -0.2833f, -2.531f, 1, 1, 3, new Dilation(-0.15f, -0.25f, -0.1f)), ModelTransform.of(-0.2746f, 0.2001f, -31.9471f, 1.885f, 0f, 0f));
+        add(m, "n1_Head", "n19_Cabeça", ModelPartBuilder.create().uv(98, 107).cuboid(-1.4f, 0.1464f, -1.7809f, 1, 1, 3, new Dilation(-0.15f, -0.25f, -0.1f)), ModelTransform.of(-0.2746f, 3.3001f, -31.5471f, 1.7017f, 0f, 0f));
+        add(m, "n1_Head", "n20_Cabeça", ModelPartBuilder.create().uv(106, 107).cuboid(0.7f, 0.1464f, -1.7809f, 1, 1, 3, new Dilation(-0.15f, -0.25f, -0.1f)), ModelTransform.of(-0.2746f, 3.3001f, -31.5471f, 1.7017f, 0f, 0f));
+        add(m, "n1_Head", "n21_Cabeça", ModelPartBuilder.create().uv(114, 107).cuboid(-1.3f, -18.6762f, -9.8438f, 1, 1, 3, new Dilation(-0.25f, -0.35f, -0.1f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 1.8326f, 0f, 0f));
+        add(m, "n1_Head", "n22_Cabeça", ModelPartBuilder.create().uv(122, 107).cuboid(0.8f, -18.6762f, -9.8438f, 1, 1, 3, new Dilation(-0.25f, -0.35f, -0.1f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 1.8326f, 0f, 0f));
+        add(m, "n1_Head", "n23_Cabeça", ModelPartBuilder.create().uv(130, 107).cuboid(-1.2f, 0.2486f, -2.6496f, 1, 1, 3, new Dilation(-0.35f, -0.45f, -0.1f)), ModelTransform.of(-0.2746f, 7.8001f, -30.4471f, 2.3998f, 0f, 0f));
+        add(m, "n1_Head", "n24_Cabeça", ModelPartBuilder.create().uv(138, 107).cuboid(0.9f, 0.2486f, -2.6496f, 1, 1, 3, new Dilation(-0.35f, -0.45f, -0.1f)), ModelTransform.of(-0.2746f, 7.8001f, -30.4471f, 2.3998f, 0f, 0f));
+        add(m, "n1_Head", "n25_Bigode_baixo", ModelPartBuilder.create().uv(148, 52).cuboid(-0.001f, 3.2f, -16.3f, 1, 5, 12, new Dilation(-0.4995f, 0.2f, -0.1f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 0.2618f, 0f, 0f));
+        add(m, "n1_Head", "n26_Chifres", ModelPartBuilder.create().uv(118, 99).cuboid(-0.6471f, -3.5213f, -3.4043f, 1, 1, 6, new Dilation(-0.05f, 0.2f, -0.1f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 1.9714f, -0.0891f, -2.292f));
+        add(m, "n1_Head", "n27_Chifres", ModelPartBuilder.create().uv(132, 99).cuboid(-0.6471f, -3.7811f, -4.2484f, 1, 1, 6, new Dilation(-0.05f, 0.2f, -0.1f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 2.3031f, -0.0891f, -2.292f));
+        add(m, "n1_Head", "n28_Chifres", ModelPartBuilder.create().uv(80, 90).cuboid(-0.6471f, -4.1892f, -6.2368f, 1, 1, 7, new Dilation(-0.05f, 0.2f, -0.2f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 2.5125f, -0.0891f, -2.292f));
+        add(m, "n1_Head", "n29_Chifres", ModelPartBuilder.create().uv(96, 90).cuboid(-0.6471f, -4.6708f, -8.1683f, 1, 1, 7, new Dilation(-0.05f, 0.2f, -0.2f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 2.6347f, -0.0891f, -2.292f));
+        add(m, "n1_Head", "n30_Chifres", ModelPartBuilder.create().uv(112, 90).cuboid(-0.5471f, -4.5708f, -10.8683f, 1, 1, 7, new Dilation(-0.15f, 0.1f, -0.2f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 2.6347f, -0.0891f, -2.292f));
+        add(m, "n1_Head", "n31_Chifres", ModelPartBuilder.create().uv(128, 90).cuboid(-0.4471f, -4.4708f, -13.6683f, 1, 1, 7, new Dilation(-0.25f, 0f, -0.2f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 2.6347f, -0.0891f, -2.292f));
+        add(m, "n1_Head", "n32_Cabeça", ModelPartBuilder.create().uv(146, 99).cuboid(-1.7806f, -3.4486f, -3.5541f, 1, 1, 6, new Dilation(-0.05f, 0.2f, -0.1f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 2.0577f, -0.1046f, 1.9526f));
+        add(m, "n1_Head", "n33_Cabeça", ModelPartBuilder.create().uv(160, 99).cuboid(-1.7806f, -3.7611f, -4.4137f, 1, 1, 6, new Dilation(-0.05f, 0.2f, -0.1f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 2.3893f, -0.1046f, 1.9526f));
+        add(m, "n1_Head", "n34_Cabeça", ModelPartBuilder.create().uv(144, 90).cuboid(-1.7806f, -4.204f, -6.4027f, 1, 1, 7, new Dilation(-0.05f, 0.2f, -0.2f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 2.5987f, -0.1046f, 1.9526f));
+        add(m, "n1_Head", "n35_Cabeça", ModelPartBuilder.create().uv(160, 90).cuboid(-1.7806f, -4.7058f, -8.3311f, 1, 1, 7, new Dilation(-0.05f, 0.2f, -0.2f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 2.7209f, -0.1046f, 1.9526f));
+        add(m, "n1_Head", "n36_Cabeça", ModelPartBuilder.create().uv(176, 90).cuboid(-1.6806f, -4.6058f, -11.0311f, 1, 1, 7, new Dilation(-0.15f, 0.1f, -0.2f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 2.7209f, -0.1046f, 1.9526f));
+        add(m, "n1_Head", "n37_Cabeça", ModelPartBuilder.create().uv(192, 90).cuboid(-1.5806f, -4.5058f, -13.8311f, 1, 1, 7, new Dilation(-0.25f, 0f, -0.2f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 2.7209f, -0.1046f, 1.9526f));
+        add(m, "n1_Head", "n38_Cabeça", ModelPartBuilder.create().uv(48, 99).cuboid(-2.6531f, -2.0003f, 6.2647f, 1, 2, 6, new Dilation(0.25f, -0.15f, -0.15f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 1.0298f, 0.009f, 0.015f));
+        add(m, "n1_Head", "n39_Cabeça", ModelPartBuilder.create().uv(208, 90).cuboid(1.1531f, -2.0003f, 6.0989f, 2, 2, 6, new Dilation(-0.25f, -0.15f, -0.15f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 1.0298f, -0.009f, -0.015f));
+        add(m, "n1_Head", "n40_Bigode_baixo", ModelPartBuilder.create().uv(174, 52).cuboid(-2.651f, 3.2f, -9.3f, 1, 5, 12, new Dilation(-0.4995f, 0.2f, -0.1f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 0.2618f, 0f, 0f));
+        add(m, "n1_Head", "n41_Bigode_baixo", ModelPartBuilder.create().uv(200, 52).cuboid(2.749f, 3.2f, -9.3f, 1, 5, 12, new Dilation(-0.4995f, 0.2f, -0.1f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 0.2618f, 0f, 0f));
+        add(m, "n1_Head", "n42_Cabeça", ModelPartBuilder.create().uv(174, 99).cuboid(-2.7309f, -0.5106f, 10.7202f, 1, 1, 6, new Dilation(0.2f, 0.2f, -0.15f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 1.152f, 0.0071f, 0.0159f));
+        add(m, "n1_Head", "n43_Cabeça", ModelPartBuilder.create().uv(188, 99).cuboid(1.2309f, -0.5106f, 10.5544f, 1, 1, 6, new Dilation(0.2f, 0.2f, -0.15f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 1.152f, -0.0071f, -0.0159f));
+        add(m, "n1_Head", "n44_Dentes", ModelPartBuilder.create().uv(14, 107).cuboid(-0.001f, -0.55f, -2.65f, 1, 2, 5, new Dilation(-0.4995f, -0.25f, 0.15f)), ModelTransform.of(2.2922f, -1.2222f, -28.2119f, 0.5318f, -0.0044f, -0.0194f));
+        add(m, "n1_Head", "n45_Dentes", ModelPartBuilder.create().uv(26, 107).cuboid(-0.101f, -0.65f, -2.65f, 1, 2, 5, new Dilation(-0.4995f, -0.25f, 0.15f)), ModelTransform.of(-2.7052f, -1.333f, -27.9313f, 0.5318f, 0.01f, -0.0095f));
+        add(m, "n1_Head", "n46_Dentes", ModelPartBuilder.create().uv(224, 90).cuboid(2.799f, 1.3f, -16.9f, 1, 1, 7, new Dilation(-0.4995f, 0.15f, 0.05f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 0.2618f, 0f, 0f));
+        add(m, "n1_Head", "n47_Dentes", ModelPartBuilder.create().uv(240, 90).cuboid(0.499f, -0.65f, -6.05f, 1, 1, 7, new Dilation(-0.4995f, 0.15f, 0.05f)), ModelTransform.of(-2.9045f, -0.3526f, -31.1011f, 1.6034f, -1.3089f, -1.6045f));
+        add(m, "n1_Head", "n48_Dentes", ModelPartBuilder.create().uv(38, 107).cuboid(16.4845f, -3.707f, -1.7143f, 1, 2, 5, new Dilation(-0.4995f, -0.25f, 0.15f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 1.6518f, 0.967f, 1.6527f));
+        add(m, "n1_Head", "n49_Dentes", ModelPartBuilder.create().uv(0, 99).cuboid(-2.801f, 1.3f, -16.9f, 1, 1, 7, new Dilation(-0.4995f, 0.15f, 0.05f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 0.2618f, 0f, 0f));
+        add(m, "n1_Head", "n50_Cabeça", ModelPartBuilder.create().uv(0, 74).cuboid(-2.9f, -3.2f, -9.9f, 6, 6, 10, new Dilation(-0.1f, 0.2f, -0.1f)), ModelTransform.of(-0.2746f, -6.6999f, -14.9471f, 0.2618f, 0f, 0f));
         add(m, "n0_x", "n51_Corpo", ModelPartBuilder.create(), ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
         add(m, "n51_Corpo", "slice113_Corpo", ModelPartBuilder.create(), ModelTransform.of(0f, 0f, -11f, 0f, 0f, 0f));
         add(m, "slice113_Corpo", "slice114_Corpo", ModelPartBuilder.create(), ModelTransform.of(0f, 0f, 8.3856f, 0f, 0f, 0f));
@@ -192,6 +201,8 @@ public class TideDragonModel extends EntityModel<AshwingRenderState> {
     private static float sin(float v) { return (float) Math.sin(v); }
     private static float cos(float v) { return (float) Math.cos(v); }
 
+    private static float snap(float x) { return SNAP > 0f ? Math.signum(x) * (float) Math.sqrt(Math.abs(x)) : x; }
+
     @Override
     public void setAngles(AshwingRenderState s) {
         super.setAngles(s);
@@ -207,39 +218,84 @@ public class TideDragonModel extends EntityModel<AshwingRenderState> {
         float pitchLook = s.pitch * 0.0174533f;
         boolean fly = s.flying;
         boolean breath = s.breathing;
+        boolean sit = s.sitting;
+        float death = s.death;
+        if (death > 0f) { fly = false; sit = false; amp *= 1f - death; }
+        if (fly) sit = false;
+        float moving = (fly || sit || death > 0f) ? 0f : amp;
+        float alive = 1f - death;
+        // ---- cuello, cabeza, mandibula
         for (int i = 0; i < NECK.length; i++) {
-            bones[NECK[i]].pitch += sin(t * 0.05f - i * 0.5f) * 0.03f + (fly ? 0.05f : 0f) + (breath ? -0.05f : 0f);
+            bones[NECK[i]].pitch += sin(t * 0.05f - i * 0.5f) * 0.03f + (fly ? FLY_NECK : 0f) + (breath ? -0.05f : 0f)
+                    + sin(2f * f) * 0.03f * moving + (sit ? SIT_NECK / NECK.length : 0f) + DEATH_NECK / NECK.length * death;
             bones[NECK[i]].yaw += yawLook * 0.12f;
         }
         if (HEAD >= 0) {
-            bones[HEAD].yaw += yawLook * 0.4f;
-            bones[HEAD].pitch += pitchLook * 0.5f + sin(t * 0.09f) * 0.02f - (breath ? 0.3f : 0f);
+            bones[HEAD].pitch += pitchLook * 0.5f + sin(t * 0.09f) * 0.02f - (breath ? 0.3f : 0f) + sin(2f * f) * 0.04f * moving
+                    + (sit ? -0.1f : 0f) + 0.4f * death;
+            bones[HEAD].yaw += yawLook * 0.4f - sin(f * 1.5f) * HEAD_SWAY * moving;
         }
-        if (JAW >= 0) bones[JAW].pitch += breath ? 0.8f : 0.05f + (sin(t * 0.09f) + 1f) * 0.03f;
+        if (JAW >= 0) {
+            bones[JAW].pitch += (breath ? 0.8f : 0.05f + (sin(t * 0.09f) + 1f) * 0.03f) + Math.max(0f, sin(f * 3f)) * JAW_CLACK * moving + 0.5f * death;
+        }
+        // ---- cola / cuerpo de serpiente
         for (int j = 0; j < TAIL.length; j++) {
-            bones[TAIL[j]].yaw += (sin(t * 0.06f - j * 0.55f) * (0.05f + 0.01f * j) + cos(f) * 0.05f * amp) * TAIL_AMP;
+            float yaw = (sin(t * 0.06f - j * 0.55f) * (0.05f + 0.01f * j) + cos(f) * 0.05f * amp) * TAIL_AMP * alive;
+            yaw += sin(f * 1.5f - j * 0.7f) * WAVE * moving;
+            float pit = fly ? sin(t * FLAP_SPEED - j * 0.5f) * 0.05f - (j == 0 ? 0.05f * sin(t * FLAP_SPEED) : 0f) : 0f;
+            if (sit) yaw += SIT_COIL;
+            pit += DEATH_TAIL * death + sin(f * 1.5f - j * 0.7f + 1.5f) * WAVEP * moving;
+            bones[TAIL[j]].yaw += yaw;
+            bones[TAIL[j]].pitch += pit;
         }
+        float hk = 1f + 1.5f * amp;
         for (int j = 0; j < HAIR.length; j++) {
-            bones[HAIR[j]].roll += sin(t * 0.15f + j * 1.7f) * 0.12f;
-            bones[HAIR[j]].pitch += cos(t * 0.13f + j) * 0.1f;
+            bones[HAIR[j]].roll += sin(t * 0.15f + j * 1.7f) * 0.12f * hk;
+            bones[HAIR[j]].pitch += cos(t * 0.13f + j) * 0.1f * hk + 0.7f * death;
         }
-        float fold = fly ? 0f : FOLD;
-        float flap = fly ? sin(t * 0.3f) : sin(t * 0.1f) * 0.04f;
+        // ---- alas
+        float fold = fly ? 0f : (sit ? 1f : FOLD);
+        float flap = fly ? snap(sin(t * FLAP_SPEED)) : sin(t * 0.1f) * 0.04f;
+        float lag = snap(sin(t * FLAP_SPEED - 0.9f));
         for (int w = 0; w < WING.length; w++) {
             float sg = WSIGN[w];
             ModelPart root = bones[WING[w][0]];
-            root.roll += -sg * flap * FLAP + sg * FOLD_ROLL * fold;
-            root.yaw += -sg * FOLD_YAW * fold;
+            root.roll += -sg * flap * FLAP + sg * FOLD_ROLL * fold - sg * sin(2f * f) * 0.05f * moving + sg * DEATH_WING * death;
+            root.yaw += -sg * FOLD_YAW * fold - (fly ? sg * 0.12f * flap : 0f);
             for (int k = 1; k < WING[w].length; k++) {
                 ModelPart tip = bones[WING[w][k]];
                 tip.yaw += -sg * FOLD_TIP * fold;
-                tip.roll += -sg * flap * 0.35f;
+                tip.roll += -sg * (fly ? lag * 0.45f : flap * 0.35f) + sg * DEATH_WING * 0.5f * death;
             }
         }
+        // ---- patas
         for (int l = 0; l < LEG.length; l++) {
-            float sw = cos(f + LPHASE[l] * 3.14159f) * amp * LEG_AMP;
-            bones[LEG[l][0]].pitch += sw;
-            for (int k = 1; k < LEG[l].length; k++) bones[LEG[l][k]].pitch += -sw * 0.5f * k;
+            float a = f + LPHASE[l] * 3.14159f;
+            float sgn = (l % 2 == 0) ? 1f : -1f;
+            for (int k = 0; k < LEG[l].length; k++) {
+                int kk = Math.min(k, 2);
+                float dp;
+                if (k == 0) dp = sin(a) * LEG_AMP * moving;
+                else if (k == 1) dp = Math.max(0f, sin(a + 1f)) * KNEE * moving;
+                else dp = -Math.max(0f, sin(a + 1f)) * KNEE * 0.5f * moving;
+                if (fly) dp += FLY_LEG[kk];
+                if (sit) dp += SIT_LEG[kk];
+                dp += sgn * DEATH_LEG[kk] * death;
+                bones[LEG[l][k]].pitch += dp;
+            }
         }
+        // ---- vibracion de huesos (solo esqueleto)
+        if (JITTER > 0f) {
+            for (int i = 0; i < bones.length; i++) {
+                bones[i].pitch += sin(t * 2.7f + i * 1.9f) * JITTER * (1f + moving);
+                bones[i].roll += cos(t * 2.3f + i * 1.3f) * JITTER * 0.7f;
+            }
+        }
+        // ---- desplazamiento vertical de todo el modelo (subida al andar, agacharse, flotar al volar, hundirse al morir)
+        float dy = -Math.abs(cos(f)) * BOB * moving;
+        if (sit) dy += CROUCH;
+        if (fly) dy += sin(t * 0.2f) * FLY_BOB;
+        dy += DEATH_DY * death;
+        for (int i = 0; i < ROOTS.length; i++) roots[i].originY = ROOT_Y[i] + dy;
     }
 }

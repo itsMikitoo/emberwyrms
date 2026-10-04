@@ -6,4 +6,6 @@ import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 public class WalkRenderState extends LivingEntityRenderState {
     public float walkSpeed;
     public float walkPhase;
+    /** 0 = vivo, 1 = muerte completa (se rellena desde LivingEntity.deathTime). */
+    public float death;
 }

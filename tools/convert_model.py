@@ -234,13 +234,40 @@ def slice_chain(parts, group, n, axis, reverse=False):
         reparent(parts, c, chain[k])
     return chain
 
+def subtree_points(p):
+    pts = []
+    def rec(q):
+        if hasattr(q, 'mesh'):
+            pos = q.mesh[0][0]; pts.extend(pos @ q.Rw.T + q.tw)
+        for c in q.children: rec(c)
+    rec(p)
+    return np.array(pts)
+
+def recenter(parts, p, mode):
+    """Mueve el pivote de un hueso sin mover su geometria. mode: 'head' = detras y abajo (el cuello), 'base' = centro de la base, 'center'."""
+    pts = subtree_points(p)
+    if len(pts) == 0: return
+    mn, mx = pts.min(0), pts.max(0); c = (mn + mx) / 2
+    if mode == 'head': P = np.array([c[0], mn[1] + 0.3 * (mx[1] - mn[1]), mx[2]])
+    elif mode == 'base': P = np.array([c[0], mn[1], c[2]])
+    else: P = c
+    Rpar = p.parent.Rw if p.parent is not None else np.eye(3); tpar = p.parent.tw if p.parent is not None else np.zeros(3)
+    p.t_bb = Rpar.T @ (P - tpar)
+    for ch in p.children: ch.t_bb = p.Rw.T @ (ch.tw - P)
+    p.tw = P
+
+def apply_ops(cv, ops):
+    for op in (ops or []):
+        if op[0] == 'reparent': reparent(cv.parts, find(cv.parts, op[1]), find(cv.parts, op[2]))
+        elif op[0] == 'slice':
+            cv.chains = getattr(cv, 'chains', {}); cv.chains[op[1]] = slice_chain(cv.parts, find(cv.parts, op[1]), op[2], op[3], op[4] if len(op) > 4 else False)
+        elif op[0] == 'recenter': recenter(cv.parts, find(cv.parts, op[1]), op[2])
+
 def convert2(path, f=1.0, pre_yaw=0.0, atlas_max=2048, ops=None):
     """Igual que convert() pero permite ops=[('reparent', hijo, padre), ('slice', grupo, n, eje[, reverse])] entre el mundo BB y el paso a mp."""
     import types
     cv = _convert_stage1(path, f, pre_yaw)
-    for op in (ops or []):
-        if op[0] == 'reparent': reparent(cv.parts, find(cv.parts, op[1]), find(cv.parts, op[2]))
-        elif op[0] == 'slice': cv.chains = getattr(cv, 'chains', {}); cv.chains[op[1]] = slice_chain(cv.parts, find(cv.parts, op[1]), op[2], op[3], op[4] if len(op) > 4 else False)
+    apply_ops(cv, ops)
     return _convert_stage2(cv, atlas_max)
 
 def _convert_stage1(path, f, pre_yaw):
@@ -387,7 +414,5 @@ def convert_bedrock(geo_path, tex_path, f=1.0, atlas_max=2048, ops=None):
         for c in p.children: world(c, p.Rw, p.tw)
     for p in parts:
         if p.parent is None: world(p, np.eye(3), np.zeros(3))
-    for op in (ops or []):
-        if op[0] == 'reparent': reparent(parts, find(parts, op[1]), find(parts, op[2]))
-        elif op[0] == 'slice': cv.chains = getattr(cv, 'chains', {}); cv.chains[op[1]] = slice_chain(parts, find(parts, op[1]), op[2], op[3], op[4] if len(op) > 4 else False)
+    apply_ops(cv, ops)
     return _convert_stage2(cv, atlas_max)

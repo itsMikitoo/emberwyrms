@@ -17,6 +17,7 @@ import net.minecraft.client.render.entity.model.EntityModel;
  */
 public class AshBossModel extends EntityModel<AshwingRenderState> {
     private final ModelPart[] bones;
+    private final ModelPart[] roots;
     private static final float[][] REST = {{0f, 0f, 0f}, {0f, 0f, 0f}, {0f, 0f, 0f}, {0f, 0f, 0f}, {0.516f, 0.0649f, 0.2376f}, {0.516f, -0.0649f, -0.2376f}, {0f, 0f, 0f}, {0f, 0f, 0f}, {0f, 0f, 0f}, {0f, 0f, 0f}};
     private static final int HEAD = 0, JAW = -1;
     private static final int[] NECK = {1}, TAIL = {2, 3}, HAIR = {};
@@ -24,7 +25,12 @@ public class AshBossModel extends EntityModel<AshwingRenderState> {
     private static final float[] WSIGN = {-1f, 1f};
     private static final int[][] LEG = {{6}, {7}, {8}, {9}};
     private static final float[] LPHASE = {0f, 1f, 1f, 0f};
-    private static final float FOLD = 0.9f, FOLD_YAW = 0.8f, FOLD_TIP = 1.2f, FOLD_ROLL = 0.3f, FLAP = 0.75f, TAIL_AMP = 1f, LEG_AMP = 0.6f;
+    private static final float[] ROOT_Y = {23.9124f};
+    private static final float[] SIT_LEG = {0.8f, -1.2f, 0.6f}, FLY_LEG = {0.9f, 0.7f, 0.3f}, DEATH_LEG = {0.9f, -1.5f, 0.5f};
+    private static final float LEG_AMP = 0.85f, KNEE = 0.8f, BOB = 7f, CROUCH = 0f, FLY_BOB = 2f, DEATH_DY = 14f;
+    private static final float FLY_NECK = 0.05f, SIT_NECK = -0.2f, DEATH_NECK = 0.8f, SIT_COIL = 0.3f, DEATH_TAIL = -0.12f, DEATH_WING = 0.9f;
+    private static final float FLAP_SPEED = 0.3f, SNAP = 0f, JITTER = 0f, JAW_CLACK = 0f, WAVE = 0.04f, WAVEP = 0f, HEAD_SWAY = 0.05f;
+    private static final float FOLD = 0.9f, FOLD_YAW = 0.8f, FOLD_TIP = 1.2f, FOLD_ROLL = 0.3f, FLAP = 0.75f, TAIL_AMP = 1f, LEG_AMP = 0.85f;
 
     public AshBossModel(ModelPart root) {
         super(root);
@@ -39,6 +45,9 @@ public class AshBossModel extends EntityModel<AshwingRenderState> {
             root.getChild("n0_x").getChild("n1_THE_WARRIOR").getChild("n2_Body").getChild("n173_Leg2"),
             root.getChild("n0_x").getChild("n1_THE_WARRIOR").getChild("n2_Body").getChild("n121_Leg3"),
             root.getChild("n0_x").getChild("n1_THE_WARRIOR").getChild("n2_Body").getChild("n147_Leg4")
+        };
+        this.roots = new ModelPart[] {
+            root.getChild("n0_x")
         };
     }
 
@@ -80,12 +89,12 @@ public class AshBossModel extends EntityModel<AshwingRenderState> {
         add(m, "n2_Body", "n18_cube", ModelPartBuilder.create().uv(530, 790).cuboid(-6.1776f, -154.44f, 37.0656f, 12, 9, 28, new Dilation(0.1776f, -0.1757f, 0.2085f)), ModelTransform.of(0f, 78.3705f, -114.5719f, -0.1745f, 0f, 0f));
         add(m, "n2_Body", "n19_cube", ModelPartBuilder.create().uv(484, 894).cuboid(-6.1776f, -163.0886f, 48.1853f, 12, 9, 14, new Dilation(0.1776f, -0.1757f, -0.2046f)), ModelTransform.of(0f, 78.3705f, -114.5719f, -0.1745f, 0f, 0f));
         add(m, "n2_Body", "n20_cube", ModelPartBuilder.create().uv(832, 894).cuboid(-4.9421f, -96.3706f, 96.3706f, 10, 10, 10, new Dilation(-0.0579f, -0.0579f, -0.0579f)), ModelTransform.of(0f, 68.4f, -115.2f, 0f, 0f, 0f));
-        add(m, "n2_Body", "n21_bone8", ModelPartBuilder.create(), ModelTransform.of(0f, 0f, -115.6f, 0f, 0f, 0f));
-        add(m, "n21_bone8", "n22_Neck", ModelPartBuilder.create(), ModelTransform.of(0f, 68.4f, 0.4f, 0f, 0f, 0f));
+        add(m, "n2_Body", "n21_bone8", ModelPartBuilder.create(), ModelTransform.of(0f, -7.2382f, -102.474f, 0f, 0f, 0f));
+        add(m, "n21_bone8", "n22_Neck", ModelPartBuilder.create(), ModelTransform.of(0f, 75.6382f, -12.726f, 0f, 0f, 0f));
         add(m, "n22_Neck", "n23_cube", ModelPartBuilder.create().uv(774, 268).cuboid(-16.0618f, -30.888f, -44.4787f, 32, 32, 51, new Dilation(0.0618f, 0.0618f, -0.1718f)), ModelTransform.of(0f, -55.5984f, -1.2355f, -0.2618f, 0f, 0f));
         add(m, "n22_Neck", "n24_cube", ModelPartBuilder.create().uv(644, 376).cuboid(-14.8262f, -33.359f, -88.9574f, 30, 33, 44, new Dilation(-0.1738f, 0.1795f, 0.2394f)), ModelTransform.of(0f, -64.3514f, 12.4723f, 0.0436f, 0f, 0f));
-        add(m, "n21_bone8", "n25_bone9", ModelPartBuilder.create(), ModelTransform.of(0f, 0f, 115.6f, 0f, 0f, 0f));
-        add(m, "n25_bone9", "n26_Head", ModelPartBuilder.create(), ModelTransform.of(0f, -14.224f, -183.983f, 0.0436f, 0f, 0f));
+        add(m, "n21_bone8", "n25_bone9", ModelPartBuilder.create(), ModelTransform.of(0f, 0f, -16.2868f, 0f, 0f, 0f));
+        add(m, "n25_bone9", "n26_Head", ModelPartBuilder.create(), ModelTransform.of(0f, -6.9858f, -65.2222f, 0.0436f, 0f, 0f));
         add(m, "n26_Head", "n27_cube", ModelPartBuilder.create().uv(0, 459).cuboid(-12.2564f, 91.9227f, -128.6918f, 25, 31, 37, new Dilation(-0.2436f, -0.1796f, -0.1155f)), ModelTransform.of(0f, -115.0093f, 90.8088f, 0f, 0f, 0f));
         add(m, "n26_Head", "n28_cube", ModelPartBuilder.create().uv(514, 459).cuboid(26.0448f, 99.5829f, -128.6918f, 12, 26, 37, new Dilation(0.1282f, 0.0224f, -0.1155f)), ModelTransform.of(-6.1241f, -115.0093f, 94.0219f, 0f, 0.1309f, 0f));
         add(m, "n26_Head", "n29_cube", ModelPartBuilder.create().uv(156, 863).cuboid(27.5768f, 111.8393f, -147.0763f, 11, 12, 18, new Dilation(-0.1378f, 0.1282f, 0.1923f)), ModelTransform.of(-8.1732f, -130.8502f, 78.4573f, 0.1309f, 0.1309f, 0f));
@@ -359,6 +368,8 @@ public class AshBossModel extends EntityModel<AshwingRenderState> {
     private static float sin(float v) { return (float) Math.sin(v); }
     private static float cos(float v) { return (float) Math.cos(v); }
 
+    private static float snap(float x) { return SNAP > 0f ? Math.signum(x) * (float) Math.sqrt(Math.abs(x)) : x; }
+
     @Override
     public void setAngles(AshwingRenderState s) {
         super.setAngles(s);
@@ -374,39 +385,84 @@ public class AshBossModel extends EntityModel<AshwingRenderState> {
         float pitchLook = s.pitch * 0.0174533f;
         boolean fly = s.flying;
         boolean breath = s.breathing;
+        boolean sit = s.sitting;
+        float death = s.death;
+        if (death > 0f) { fly = false; sit = false; amp *= 1f - death; }
+        if (fly) sit = false;
+        float moving = (fly || sit || death > 0f) ? 0f : amp;
+        float alive = 1f - death;
+        // ---- cuello, cabeza, mandibula
         for (int i = 0; i < NECK.length; i++) {
-            bones[NECK[i]].pitch += sin(t * 0.05f - i * 0.5f) * 0.03f + (fly ? 0.05f : 0f) + (breath ? -0.05f : 0f);
+            bones[NECK[i]].pitch += sin(t * 0.05f - i * 0.5f) * 0.03f + (fly ? FLY_NECK : 0f) + (breath ? -0.05f : 0f)
+                    + sin(2f * f) * 0.03f * moving + (sit ? SIT_NECK / NECK.length : 0f) + DEATH_NECK / NECK.length * death;
             bones[NECK[i]].yaw += yawLook * 0.12f;
         }
         if (HEAD >= 0) {
-            bones[HEAD].yaw += yawLook * 0.4f;
-            bones[HEAD].pitch += pitchLook * 0.5f + sin(t * 0.09f) * 0.02f - (breath ? 0.3f : 0f);
+            bones[HEAD].pitch += pitchLook * 0.5f + sin(t * 0.09f) * 0.02f - (breath ? 0.3f : 0f) + sin(2f * f) * 0.04f * moving
+                    + (sit ? -0.1f : 0f) + 0.4f * death;
+            bones[HEAD].yaw += yawLook * 0.4f - sin(f * 1.5f) * HEAD_SWAY * moving;
         }
-        if (JAW >= 0) bones[JAW].pitch += breath ? 0.8f : 0.05f + (sin(t * 0.09f) + 1f) * 0.03f;
+        if (JAW >= 0) {
+            bones[JAW].pitch += (breath ? 0.8f : 0.05f + (sin(t * 0.09f) + 1f) * 0.03f) + Math.max(0f, sin(f * 3f)) * JAW_CLACK * moving + 0.5f * death;
+        }
+        // ---- cola / cuerpo de serpiente
         for (int j = 0; j < TAIL.length; j++) {
-            bones[TAIL[j]].yaw += (sin(t * 0.06f - j * 0.55f) * (0.05f + 0.01f * j) + cos(f) * 0.05f * amp) * TAIL_AMP;
+            float yaw = (sin(t * 0.06f - j * 0.55f) * (0.05f + 0.01f * j) + cos(f) * 0.05f * amp) * TAIL_AMP * alive;
+            yaw += sin(f * 1.5f - j * 0.7f) * WAVE * moving;
+            float pit = fly ? sin(t * FLAP_SPEED - j * 0.5f) * 0.05f - (j == 0 ? 0.05f * sin(t * FLAP_SPEED) : 0f) : 0f;
+            if (sit) yaw += SIT_COIL;
+            pit += DEATH_TAIL * death + sin(f * 1.5f - j * 0.7f + 1.5f) * WAVEP * moving;
+            bones[TAIL[j]].yaw += yaw;
+            bones[TAIL[j]].pitch += pit;
         }
+        float hk = 1f + 1.5f * amp;
         for (int j = 0; j < HAIR.length; j++) {
-            bones[HAIR[j]].roll += sin(t * 0.15f + j * 1.7f) * 0.12f;
-            bones[HAIR[j]].pitch += cos(t * 0.13f + j) * 0.1f;
+            bones[HAIR[j]].roll += sin(t * 0.15f + j * 1.7f) * 0.12f * hk;
+            bones[HAIR[j]].pitch += cos(t * 0.13f + j) * 0.1f * hk + 0.7f * death;
         }
-        float fold = fly ? 0f : FOLD;
-        float flap = fly ? sin(t * 0.3f) : sin(t * 0.1f) * 0.04f;
+        // ---- alas
+        float fold = fly ? 0f : (sit ? 1f : FOLD);
+        float flap = fly ? snap(sin(t * FLAP_SPEED)) : sin(t * 0.1f) * 0.04f;
+        float lag = snap(sin(t * FLAP_SPEED - 0.9f));
         for (int w = 0; w < WING.length; w++) {
             float sg = WSIGN[w];
             ModelPart root = bones[WING[w][0]];
-            root.roll += -sg * flap * FLAP + sg * FOLD_ROLL * fold;
-            root.yaw += -sg * FOLD_YAW * fold;
+            root.roll += -sg * flap * FLAP + sg * FOLD_ROLL * fold - sg * sin(2f * f) * 0.05f * moving + sg * DEATH_WING * death;
+            root.yaw += -sg * FOLD_YAW * fold - (fly ? sg * 0.12f * flap : 0f);
             for (int k = 1; k < WING[w].length; k++) {
                 ModelPart tip = bones[WING[w][k]];
                 tip.yaw += -sg * FOLD_TIP * fold;
-                tip.roll += -sg * flap * 0.35f;
+                tip.roll += -sg * (fly ? lag * 0.45f : flap * 0.35f) + sg * DEATH_WING * 0.5f * death;
             }
         }
+        // ---- patas
         for (int l = 0; l < LEG.length; l++) {
-            float sw = cos(f + LPHASE[l] * 3.14159f) * amp * LEG_AMP;
-            bones[LEG[l][0]].pitch += sw;
-            for (int k = 1; k < LEG[l].length; k++) bones[LEG[l][k]].pitch += -sw * 0.5f * k;
+            float a = f + LPHASE[l] * 3.14159f;
+            float sgn = (l % 2 == 0) ? 1f : -1f;
+            for (int k = 0; k < LEG[l].length; k++) {
+                int kk = Math.min(k, 2);
+                float dp;
+                if (k == 0) dp = sin(a) * LEG_AMP * moving;
+                else if (k == 1) dp = Math.max(0f, sin(a + 1f)) * KNEE * moving;
+                else dp = -Math.max(0f, sin(a + 1f)) * KNEE * 0.5f * moving;
+                if (fly) dp += FLY_LEG[kk];
+                if (sit) dp += SIT_LEG[kk];
+                dp += sgn * DEATH_LEG[kk] * death;
+                bones[LEG[l][k]].pitch += dp;
+            }
         }
+        // ---- vibracion de huesos (solo esqueleto)
+        if (JITTER > 0f) {
+            for (int i = 0; i < bones.length; i++) {
+                bones[i].pitch += sin(t * 2.7f + i * 1.9f) * JITTER * (1f + moving);
+                bones[i].roll += cos(t * 2.3f + i * 1.3f) * JITTER * 0.7f;
+            }
+        }
+        // ---- desplazamiento vertical de todo el modelo (subida al andar, agacharse, flotar al volar, hundirse al morir)
+        float dy = -Math.abs(cos(f)) * BOB * moving;
+        if (sit) dy += CROUCH;
+        if (fly) dy += sin(t * 0.2f) * FLY_BOB;
+        dy += DEATH_DY * death;
+        for (int i = 0; i < ROOTS.length; i++) roots[i].originY = ROOT_Y[i] + dy;
     }
 }

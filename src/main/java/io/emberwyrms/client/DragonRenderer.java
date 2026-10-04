@@ -30,6 +30,7 @@ public class DragonRenderer extends MobEntityRenderer<DragonEntity, AshwingRende
         super.updateRenderState(entity, state, tickDelta);
         state.walkSpeed = entity.anim.speed;
         state.walkPhase = entity.anim.phaseAt(tickDelta);
+        state.death = entity.deathTime > 0 ? Math.min(1f, (entity.deathTime + tickDelta) / 20f) : 0f;
         state.sitting = entity.isSitting();
         state.breathing = entity.isBreathing();
         state.flying = entity.hasPassengers() && !entity.isOnGround();

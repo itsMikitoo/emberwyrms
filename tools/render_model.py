@@ -17,7 +17,8 @@ def world_transforms(cv, pose=None):
     def rec(p, Rp, tp):
         d = pose.get(p.name) or pose.get(p.gname) or (0, 0, 0)
         R = rmat(p.rot[0] + d[0], p.rot[1] + d[1], p.rot[2] + d[2])
-        Rw = Rp @ R; tw = tp + Rp @ p.pivot
+        piv = p.pivot + (np.array([0, pose.get('__dy__', 0.0), 0]) if p.parent is None else 0)
+        Rw = Rp @ R; tw = tp + Rp @ piv
         W[p] = (Rw, tw)
         for c in p.children: rec(c, Rw, tw)
     for p in cv.parts:
